@@ -23,7 +23,7 @@ public class TaskStatusMapper {
             taskStatusDTO.setTaskStatusType(TaskStatusTypeMapper.mapToTaskStatusTypeDTO(taskStatus.getTaskStatusType()));
         if (taskStatus.getTask() != null)
             taskStatusDTO.setTask(TaskMapper.mapToTaskDTO(taskStatus.getTask()));
-        if ( ! taskStatus.getTasks().isEmpty())
+        if ( taskStatus.getTasks() != null && !taskStatus.getTasks().isEmpty())
             taskStatusDTO.setTasks(taskStatus.getTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
         return taskStatusDTO;
     }
@@ -39,7 +39,7 @@ public class TaskStatusMapper {
             taskStatus.setTaskStatusType(TaskStatusTypeMapper.mapToTaskStatusTypeEntity(taskStatusDTO.getTaskStatusType()));
         if (taskStatusDTO.getTask() != null)
             taskStatus.setTask(TaskMapper.mapToTaskEntity(taskStatusDTO.getTask()));
-        if ( ! taskStatusDTO.getTasks().isEmpty())
+        if ( taskStatusDTO.getTasks() != null && !taskStatusDTO.getTasks().isEmpty())
             taskStatus.setTasks(taskStatusDTO.getTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
         return taskStatus;
     }

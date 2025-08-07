@@ -13,7 +13,7 @@ public class TaskCategoryMapper {
         TaskCategoryDTO taskCategoryDTO = new TaskCategoryDTO();
         taskCategoryDTO.setId(taskCategory.getId());
         taskCategoryDTO.setCategory(taskCategory.getCategory());
-        if ( ! taskCategory.getTasks().isEmpty())
+        if ( taskCategory.getTasks() != null && !taskCategory.getTasks().isEmpty())
             taskCategoryDTO.setTasks(taskCategory.getTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
         return taskCategoryDTO;
     }
@@ -23,7 +23,7 @@ public class TaskCategoryMapper {
         TaskCategory taskCategory = new TaskCategory();
         taskCategory.setId(taskCategoryDTO.getId());
         taskCategory.setCategory(taskCategoryDTO.getCategory());
-        if ( ! taskCategoryDTO.getTasks().isEmpty())
+        if ( taskCategoryDTO.getTasks() != null && !taskCategoryDTO.getTasks().isEmpty())
             taskCategory.setTasks(taskCategoryDTO.getTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
         return taskCategory;
     }

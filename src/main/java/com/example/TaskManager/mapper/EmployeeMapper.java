@@ -24,7 +24,7 @@ public class EmployeeMapper {
             employeeDTO.setDateOfBirth(employee.getDateOfBirth().format(formatter));
         if (employee.getCompany() != null)
             employeeDTO.setCompany(CompanyMapper.mapToCompanyDTO(employee.getCompany()));
-        if ( ! employee.getMemberships().isEmpty())
+        if ( employee.getMemberships() != null && !employee.getMemberships().isEmpty())
             employeeDTO.setMemberships(employee.getMemberships().stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
         return employeeDTO;
     }
@@ -40,7 +40,7 @@ public class EmployeeMapper {
         employee.setDateOfBirth(LocalDate.parse(employeeDTO.getDateOfBirth()));
         if (employeeDTO.getCompany() != null)
             employee.setCompany(CompanyMapper.mapToCompanyEntity(employeeDTO.getCompany()));
-        if ( ! employeeDTO.getMemberships().isEmpty())
+        if ( employeeDTO.getMemberships() != null && !employeeDTO.getMemberships().isEmpty())
             employee.setMemberships(employeeDTO.getMemberships().stream().map(MembershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
         return employee;
     }

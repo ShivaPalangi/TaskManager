@@ -19,9 +19,9 @@ public class MembershipMapper {
             membershipDTO.setTeam(TeamMapper.mapToTeamDTO(membership.getTeam()));
         if (membership.getEmployee() != null)
             membershipDTO.setEmployee(EmployeeMapper.mapToEmployeeDTO(membership.getEmployee()));
-        if ( ! membership.getAssignedTasks().isEmpty())
+        if ( membership.getAssignedTasks()!= null && !membership.getAssignedTasks().isEmpty())
             membershipDTO.setAssignedTasks(membership.getAssignedTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
-        if ( ! membership.getCreatedTasks().isEmpty())
+        if ( membership.getCreatedTasks() != null && !membership.getCreatedTasks().isEmpty())
             membershipDTO.setCreatedTasks(membership.getCreatedTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
         return membershipDTO;
     }
@@ -36,9 +36,9 @@ public class MembershipMapper {
             membership.setTeam(TeamMapper.mapToTeamEntity(membershipDTO.getTeam()));
         if (membershipDTO.getEmployee() != null)
             membership.setEmployee(EmployeeMapper.mapToEmployeeEntity(membershipDTO.getEmployee()));
-        if ( ! membershipDTO.getAssignedTasks().isEmpty())
+        if ( membershipDTO.getAssignedTasks() != null && !membershipDTO.getAssignedTasks().isEmpty())
             membership.setAssignedTasks(membershipDTO.getAssignedTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
-        if ( ! membershipDTO.getCreatedTasks().isEmpty())
+        if ( membershipDTO.getCreatedTasks() != null && !membershipDTO.getCreatedTasks().isEmpty())
             membership.setCreatedTasks(membershipDTO.getCreatedTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
         return membership;
     }

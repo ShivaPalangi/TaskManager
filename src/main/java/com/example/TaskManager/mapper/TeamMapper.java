@@ -17,7 +17,7 @@ public class TeamMapper {
         teamDTO.setDescription(team.getDescription());
         if (team.getCompany() != null)
             teamDTO.setCompany(CompanyMapper.mapToCompanyDTO(team.getCompany()));
-        if ( ! team.getMemberships().isEmpty())
+        if ( team.getMemberships() != null && !team.getMemberships().isEmpty())
             teamDTO.setMemberships(team.getMemberships().stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
         return teamDTO;
     }
@@ -30,7 +30,7 @@ public class TeamMapper {
         team.setDescription(teamDTO.getDescription());
         if (teamDTO.getCompany() != null)
             team.setCompany(CompanyMapper.mapToCompanyEntity(teamDTO.getCompany()));
-        if ( ! teamDTO.getMemberships().isEmpty())
+        if ( teamDTO.getMemberships() != null && !teamDTO.getMemberships().isEmpty())
             team.setMemberships(teamDTO.getMemberships().stream().map(MembershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
         return team;
     }

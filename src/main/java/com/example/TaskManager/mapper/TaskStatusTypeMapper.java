@@ -16,7 +16,7 @@ public class TaskStatusTypeMapper {
         taskStatusTypeDTO.setName(taskStatusType.getName());
         taskStatusTypeDTO.setDescription(taskStatusType.getDescription());
         taskStatusTypeDTO.setTaskStatusType(taskStatusType.getTaskStatusType());
-        if ( ! taskStatusType.getTaskStatusList().isEmpty())
+        if ( taskStatusType.getTaskStatusList() != null && !taskStatusType.getTaskStatusList().isEmpty())
             taskStatusTypeDTO.setTaskStatusList(taskStatusType.getTaskStatusList().stream().map(TaskStatusMapper::mapToTaskStatusDTO).collect(Collectors.toList()));
         return taskStatusTypeDTO;
     }
@@ -28,7 +28,7 @@ public class TaskStatusTypeMapper {
         taskStatusType.setName(taskStatusTypeDTO.getName());
         taskStatusType.setDescription(taskStatusTypeDTO.getDescription());
         taskStatusType.setTaskStatusType(taskStatusTypeDTO.getTaskStatusType());
-        if ( ! taskStatusTypeDTO.getTaskStatusList().isEmpty())
+        if ( taskStatusTypeDTO.getTaskStatusList() != null && !taskStatusTypeDTO.getTaskStatusList().isEmpty())
             taskStatusType.setTaskStatusList(taskStatusTypeDTO.getTaskStatusList().stream().map(TaskStatusMapper::mapToTaskStatusEntity).collect(Collectors.toList()));
         return taskStatusType;
     }

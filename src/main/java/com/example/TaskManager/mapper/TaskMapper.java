@@ -32,9 +32,9 @@ public class TaskMapper {
             taskDTO.setResponsible(MembershipMapper.mapToMembershipDTO(task.getResponsible()));
         if (task.getCreatedBy() != null)
             taskDTO.setCreatedBy(MembershipMapper.mapToMembershipDTO(task.getCreatedBy()));
-        if ( ! task.getWorkTimes().isEmpty())
+        if ( task.getWorkTimes() != null && !task.getWorkTimes().isEmpty())
             taskDTO.setWorkTimes(task.getWorkTimes().stream().map(TaskWorkTimeMapper::mapToTaskWorkTimeDTO).collect(Collectors.toList()));
-        if ( ! task.getTaskStatusHistory().isEmpty())
+        if ( task.getTaskStatusHistory() != null && !task.getTaskStatusHistory().isEmpty())
             taskDTO.setTaskStatusHistory(task.getTaskStatusHistory().stream().map(TaskStatusMapper::mapToTaskStatusDTO).collect(Collectors.toList()));
         if (task.getTaskActiveStatus() != null)
             taskDTO.setTaskActiveStatus(TaskStatusMapper.mapToTaskStatusDTO(task.getTaskActiveStatus()));
@@ -61,9 +61,9 @@ public class TaskMapper {
             task.setResponsible(MembershipMapper.mapToMembershipEntity(taskDTO.getResponsible()));
         if (taskDTO.getCreatedBy() != null)
             task.setCreatedBy(MembershipMapper.mapToMembershipEntity(taskDTO.getCreatedBy()));
-        if ( ! taskDTO.getWorkTimes().isEmpty())
+        if ( taskDTO.getWorkTimes() != null && !taskDTO.getWorkTimes().isEmpty())
             task.setWorkTimes(taskDTO.getWorkTimes().stream().map(TaskWorkTimeMapper::mapToTaskWorkTimeEntity).collect(Collectors.toList()));
-        if ( ! taskDTO.getTaskStatusHistory().isEmpty())
+        if ( taskDTO.getTaskStatusHistory() != null && !taskDTO.getTaskStatusHistory().isEmpty())
             task.setTaskStatusHistory(taskDTO.getTaskStatusHistory().stream().map(TaskStatusMapper::mapToTaskStatusEntity).collect(Collectors.toList()));
         if (taskDTO.getTaskActiveStatus() != null)
             task.setTaskActiveStatus(TaskStatusMapper.mapToTaskStatusEntity(taskDTO.getTaskActiveStatus()));

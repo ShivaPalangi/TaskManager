@@ -14,9 +14,9 @@ public class CompanyMapper {
         companyDTO.setId(company.getId());
         companyDTO.setName(company.getName());
         companyDTO.setDescription(company.getDescription());
-        if ( ! company.getTeams().isEmpty())
+        if ( company.getTeams()!= null && !company.getTeams().isEmpty())
             companyDTO.setTeams(company.getTeams().stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList()));
-        if ( ! company.getEmployees().isEmpty())
+        if ( company.getEmployees() != null && !company.getEmployees().isEmpty())
             companyDTO.setEmployees(company.getEmployees().stream().map(EmployeeMapper::mapToEmployeeDTO).collect(Collectors.toList()));
         return companyDTO;
     }
@@ -27,9 +27,9 @@ public class CompanyMapper {
         company.setId(companyDTO.getId());
         company.setName(companyDTO.getName());
         company.setDescription(companyDTO.getDescription());
-        if ( ! companyDTO.getTeams().isEmpty())
+        if ( company.getTeams() != null && !company.getTeams().isEmpty())
             company.setTeams(companyDTO.getTeams().stream().map(TeamMapper::mapToTeamEntity).collect(Collectors.toList()));
-        if ( ! companyDTO.getEmployees().isEmpty())
+        if ( companyDTO.getEmployees() != null && !companyDTO.getEmployees().isEmpty())
             company.setEmployees(companyDTO.getEmployees().stream().map(EmployeeMapper::mapToEmployeeEntity).collect(Collectors.toList()));
         return company;
     }
