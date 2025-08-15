@@ -17,9 +17,9 @@ public class Company {
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "company")
     private List<Team> teams;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "company")
     private List<Employee> employees;
 }

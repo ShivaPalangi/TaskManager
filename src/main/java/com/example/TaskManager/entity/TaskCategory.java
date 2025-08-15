@@ -18,6 +18,6 @@ public class TaskCategory {
     @Column(nullable = false)
     private TaskCategories category;
 
-    @OneToMany(mappedBy = "taskCategory", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "taskCategory")
     private List<Task> tasks;
 }

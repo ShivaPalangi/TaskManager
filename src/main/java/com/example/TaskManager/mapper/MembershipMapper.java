@@ -1,24 +1,34 @@
 package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.MembershipDTO;
+import com.example.TaskManager.entity.Employee;
 import com.example.TaskManager.entity.Membership;
+import com.example.TaskManager.entity.Team;
+import com.example.TaskManager.repository.EmployeeRepository;
+import com.example.TaskManager.repository.TeamRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Component
 public class MembershipMapper {
+    private static TeamRepository teamRepository;
+    private static EmployeeRepository employeeRepository;
 
     public static MembershipDTO mapToMembershipDTO(Membership membership){
+        if (membership == null) return null;
+
         MembershipDTO membershipDTO = new MembershipDTO();
         membershipDTO.setId(membership.getId());
         membershipDTO.setPosition(membership.getPosition());
         membershipDTO.setRole(membership.getRole());
         if (membership.getTeam() != null)
-            membershipDTO.setTeam(TeamMapper.mapToTeamDTO(membership.getTeam()));
+            membershipDTO.setTeamId(membership.getTeam().getId());
         if (membership.getEmployee() != null)
-            membershipDTO.setEmployee(EmployeeMapper.mapToEmployeeDTO(membership.getEmployee()));
+            membershipDTO.setEmployeeId(membership.getEmployee().getId());
         if ( membership.getAssignedTasks()!= null && !membership.getAssignedTasks().isEmpty())
             membershipDTO.setAssignedTasks(membership.getAssignedTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
         if ( membership.getCreatedTasks() != null && !membership.getCreatedTasks().isEmpty())
@@ -28,14 +38,20 @@ public class MembershipMapper {
 
 
     public static Membership mapToMembershipEntity(MembershipDTO membershipDTO){
+        if (membershipDTO == null) return null;
+
         Membership membership = new Membership();
         membership.setId(membershipDTO.getId());
         membership.setPosition(membershipDTO.getPosition());
         membership.setRole(membershipDTO.getRole());
-        if (membershipDTO.getTeam() != null)
-            membership.setTeam(TeamMapper.mapToTeamEntity(membershipDTO.getTeam()));
-        if (membershipDTO.getEmployee() != null)
-            membership.setEmployee(EmployeeMapper.mapToEmployeeEntity(membershipDTO.getEmployee()));
+        if (membershipDTO.getTeamId() != null) {
+            Optional<Team> team = teamRepository.findById(membershipDTO.getTeamId());
+            membership.setTeam(team.get());
+        }
+        if (membershipDTO.getEmployeeId() != null){
+            Optional<Employee> employee = employeeRepository.findById(membershipDTO.getEmployeeId());
+            membership.setEmployee(employee.get());
+        }
         if ( membershipDTO.getAssignedTasks() != null && !membershipDTO.getAssignedTasks().isEmpty())
             membership.setAssignedTasks(membershipDTO.getAssignedTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
         if ( membershipDTO.getCreatedTasks() != null && !membershipDTO.getCreatedTasks().isEmpty())

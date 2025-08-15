@@ -9,7 +9,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 public class CompanyMapper {
+
     public static CompanyDTO mapToCompanyDTO(Company company){
+        if (company == null) return null;
+
         CompanyDTO companyDTO = new CompanyDTO();
         companyDTO.setId(company.getId());
         companyDTO.setName(company.getName());
@@ -23,6 +26,8 @@ public class CompanyMapper {
 
 
     public static Company mapToCompanyEntity(CompanyDTO companyDTO){
+        if (companyDTO == null) return null;
+
         Company company = new Company();
         company.setId(companyDTO.getId());
         company.setName(companyDTO.getName());

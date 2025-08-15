@@ -21,17 +21,17 @@ public class Membership {
     @Column(nullable = false)
     private MembershipRoles role = MembershipRoles.MEMBER;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "team", nullable = false)
     private Team team;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "employee", nullable = false)
     private Employee employee;
 
-    @OneToMany(mappedBy = "responsible", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "responsible")
     private List<Task> assignedTasks;
 
-    @OneToMany(mappedBy = "createdBy", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "createdBy")
     private List<Task> createdTasks;
 }

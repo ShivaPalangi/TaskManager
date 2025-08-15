@@ -28,10 +28,10 @@ public class Employee {
 
     private LocalDate dateOfBirth;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "company")
     private Company company;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "employee")
     private List<Membership> memberships;
 }

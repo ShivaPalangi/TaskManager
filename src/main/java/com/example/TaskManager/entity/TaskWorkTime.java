@@ -19,7 +19,7 @@ public class TaskWorkTime {
 
     private LocalDateTime endTime;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "task", nullable = false)
     private Task task;
 }

@@ -9,7 +9,10 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 public class TaskCategoryMapper {
+
     public static TaskCategoryDTO mapToTaskCategoryDTO(TaskCategory taskCategory){
+        if (taskCategory == null) return null;
+
         TaskCategoryDTO taskCategoryDTO = new TaskCategoryDTO();
         taskCategoryDTO.setId(taskCategory.getId());
         taskCategoryDTO.setCategory(taskCategory.getCategory());
@@ -20,6 +23,8 @@ public class TaskCategoryMapper {
 
 
     public static TaskCategory mapToTaskCategoryEntity(TaskCategoryDTO taskCategoryDTO){
+        if (taskCategoryDTO == null) return null;
+
         TaskCategory taskCategory = new TaskCategory();
         taskCategory.setId(taskCategoryDTO.getId());
         taskCategory.setCategory(taskCategoryDTO.getCategory());

@@ -1,6 +1,7 @@
 package com.example.TaskManager.entity;
 
 import com.example.TaskManager.enums.TaskPriorities;
+import com.example.TaskManager.enums.TaskStatusTypes;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -27,25 +28,22 @@ public class Task {
     @Column(nullable = false)
     private TaskPriorities priority;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TaskStatusTypes taskStatus;
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "task_category", nullable = false)
     private TaskCategory taskCategory;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "responsible", nullable = false)
     private Membership responsible;
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "created_by", nullable = false)
     private Membership createdBy;
 
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "task")
     private List<TaskWorkTime> workTimes;
-
-    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
-    private List<TaskStatus> taskStatusHistory;
-
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "task_active_status", nullable = false)
-    private TaskStatus taskActiveStatus;
 }
