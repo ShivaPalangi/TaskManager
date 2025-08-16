@@ -18,7 +18,6 @@ public class TeamServiceImpl implements TeamService {
     private CompanyRepository companyRepository;
 
 
-
     @Override
     public TeamDTO addTeam(TeamDTO teamDTO, Long id) {
         Optional<Company> companyOptional = companyRepository.findById(id);
@@ -27,6 +26,12 @@ public class TeamServiceImpl implements TeamService {
         team.setCompany(company);
         Team savedTeam = teamRepository.save(team);
         return TeamMapper.mapToTeamDTO(savedTeam);
+    }
+
+    @Override
+    public TeamDTO getTeam(Long teamId) {
+        Optional<Team> teamOptional = teamRepository.findById(teamId);
+        return TeamMapper.mapToTeamDTO(teamOptional.get());
     }
 
 

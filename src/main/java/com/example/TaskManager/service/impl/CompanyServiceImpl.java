@@ -24,13 +24,9 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public CompanyDTO updateCompany(CompanyDTO companyDTO) {
-        // find the existing company by id
         Optional<Company> companyOptional = companyRepository.findById(companyDTO.getId());
-
-        // do partial update of the book(we will update on non-null fields)
         Company companyToUpdate = companyOptional.get();
         updateCompanyEntityFromDTO(companyToUpdate, companyDTO);
-
         Company savedCompany = companyRepository.save(companyToUpdate);
         return CompanyMapper.mapToCompanyDTO(savedCompany);
     }
@@ -38,8 +34,7 @@ public class CompanyServiceImpl implements CompanyService {
     @Override
     public CompanyDTO getCompany(Long id) {
         Optional<Company> companyOptional = companyRepository.findById(id);
-        Company company = companyOptional.get();
-        return CompanyMapper.mapToCompanyDTO(company);
+        return CompanyMapper.mapToCompanyDTO(companyOptional.get());
     }
 
     private void updateCompanyEntityFromDTO(Company companyToUpdate, CompanyDTO companyDTO) {
