@@ -2,12 +2,16 @@ package com.example.TaskManager.entity;
 
 import com.example.TaskManager.enums.TaskCategories;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
 @Table(name = "task_category")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TaskCategory {
 
     @Id

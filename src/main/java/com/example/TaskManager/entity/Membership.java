@@ -2,12 +2,16 @@ package com.example.TaskManager.entity;
 
 import com.example.TaskManager.enums.MembershipRoles;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
 @Table(name = "membership")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Membership {
 
     @Id
@@ -27,7 +31,7 @@ public class Membership {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "employee", nullable = false)
-    private Employee employee;
+    private User employee;
 
     @OneToMany(mappedBy = "responsible")
     private List<Task> assignedTasks;

@@ -1,12 +1,16 @@
 package com.example.TaskManager.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
 @Table(name = "team")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Team {
 
     @Id

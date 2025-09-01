@@ -3,13 +3,17 @@ package com.example.TaskManager.entity;
 import com.example.TaskManager.enums.TaskPriorities;
 import com.example.TaskManager.enums.TaskStatusTypes;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
 @Table(name = "task")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Task {
 
     @Id

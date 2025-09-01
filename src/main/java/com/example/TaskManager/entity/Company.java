@@ -1,12 +1,16 @@
 package com.example.TaskManager.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Entity
 @Table(name = "company")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Company {
 
     @Id
@@ -21,5 +25,5 @@ public class Company {
     private List<Team> teams;
 
     @OneToMany(mappedBy = "company")
-    private List<Employee> employees;
+    private List<User> employees;
 }
