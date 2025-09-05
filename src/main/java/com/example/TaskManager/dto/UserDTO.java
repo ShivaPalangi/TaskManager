@@ -13,23 +13,20 @@ import java.util.List;
 public class UserDTO {
     private Long id;
 
-    @NotBlank(message = "First Name is required", groups = ValidationGroups.Create.class)
+    @NotBlank(message = "First Name is required", groups = ValidationGroups.Update.class)
     private String firstName;
 
-    @NotBlank(message = "Last Name is required", groups = ValidationGroups.Create.class)
+    @NotBlank(message = "Last Name is required", groups = ValidationGroups.Update.class)
     private String lastName;
 
-    @NotBlank(message = "Phone Number is required", groups = ValidationGroups.Create.class)
-    private String phoneNumber;
-
-    @NotBlank(message = "EmailAddress is required", groups = ValidationGroups.Create.class)
+    @NotBlank(message = "EmailAddress is required", groups = ValidationGroups.Update.class)
     @Email(message = "فرمت ایمیل نادرست است")
     private String emailAddress;
 
-    @NotBlank(message = "Password is required", groups = ValidationGroups.Create.class)
+    @NotBlank(message = "Password is required", groups = ValidationGroups.Update.class)
     private String password;
 
-    @NotNull(message = "Role is required", groups = ValidationGroups.Create.class)
+    @NotNull(message = "Role is required", groups = ValidationGroups.Update.class)
     private Role role;
 
     private String dateOfBirth;
