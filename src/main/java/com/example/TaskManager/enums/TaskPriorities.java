@@ -1,5 +1,10 @@
 package com.example.TaskManager.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum TaskPriorities {
     LOW("Low"),
     MEDIUM("Medium"),
@@ -7,8 +12,4 @@ public enum TaskPriorities {
     CRITICAL("Critical");
 
     private final String priority;
-
-    TaskPriorities(String priority){
-        this.priority = priority;
-    }
 }

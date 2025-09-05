@@ -1,5 +1,10 @@
 package com.example.TaskManager.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum TaskStatusTypes {
     DRAFT("Draft"),
     NOT_STARTED("Not Started"),
@@ -9,9 +14,4 @@ public enum TaskStatusTypes {
     DELETED("Deleted");
 
     private final String type;
-
-    TaskStatusTypes(String type){
-        this.type = type;
-    }
-
 }
