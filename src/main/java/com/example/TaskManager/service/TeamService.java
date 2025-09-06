@@ -21,7 +21,7 @@ public class TeamService  {
 
     public TeamDTO addTeam(TeamDTO teamDTO, Long id) {
         Company company = companyRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Company", "Id", id));
+                () -> new ResourceNotFoundException("Company with id %d not found".formatted(id)));
         Team team = TeamMapper.mapToTeamEntity(teamDTO);
         team.setCompany(company);
         Team savedTeam = teamRepository.save(team);
@@ -31,7 +31,7 @@ public class TeamService  {
 
     public TeamDTO getTeam(Long teamId) {
         Team team = teamRepository.findById(teamId).orElseThrow(
-                () -> new ResourceNotFoundException("Team", "Id", teamId));
+                () -> new ResourceNotFoundException("Team with id %d not found".formatted(teamId)));
         return TeamMapper.mapToTeamDTO(team);
     }
 
@@ -39,7 +39,7 @@ public class TeamService  {
 
     public TeamDTO updateTeam(TeamDTO teamDTO) {
         Team teamToUpdate = teamRepository.findById(teamDTO.getId()).orElseThrow(
-                () -> new ResourceNotFoundException("Team", "Id", teamDTO.getId()));
+                () -> new ResourceNotFoundException("Team with id %d not found".formatted(teamDTO.getId())));
         UpdateTeamEntityFromDTO(teamToUpdate, teamDTO);
         Team savedTeam = teamRepository.save(teamToUpdate);
         return TeamMapper.mapToTeamDTO(savedTeam);
