@@ -1,11 +1,14 @@
 package com.example.TaskManager.exception;
 
 import jakarta.servlet.http.HttpServletRequest;   // برای گرفتن مسیر (URI) درخواست
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;    // ساختار استاندارد خطا
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.OffsetDateTime;     // برای زمان خطا
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -13,7 +16,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFoundException(BadRequestException exception, HttpServletRequest request) {
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
-        pd.setTitle("Bad Request");
+        pd.setTitle("Resource Not Found");
         pd.setProperty("path", request.getRequestURI());
         pd.setProperty("timestamp", OffsetDateTime.now());
         return pd;
@@ -28,4 +31,38 @@ public class GlobalExceptionHandler {
         pd.setProperty("timestamp", OffsetDateTime.now());
         return pd;
     }
+
+    // @RequestBody
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleMethodArgumentNotValidException(MethodArgumentNotValidException exception, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        pd.setTitle("Validation Failed");
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("timestamp", OffsetDateTime.now());
+        var errors = exception.getBindingResult().getFieldErrors().stream().map(e -> Map.of(
+                "field" , e.getField(),
+                "message", e.getDefaultMessage(),
+                "rejectedValue", e.getRejectedValue()
+        )).toList();
+        pd.setProperty("errors", errors);
+        return pd;
+    }
+
+
+    // @PathVariable , @RequestParam
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolationException(ConstraintViolationException exception, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+        pd.setTitle("Validation Failed");
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("timestamp", OffsetDateTime.now());
+        var errors = exception.getConstraintViolations().stream().map(e -> Map.of(
+                "property", e.getPropertyPath().toString(),
+                "message", e.getMessage(),
+                "invalidValue", e.getInvalidValue()
+        )).toList();
+        pd.setProperty("errors", errors);
+        return pd;
+    }
+
 }
