@@ -1,14 +1,13 @@
 package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.MembershipDTO;
-import com.example.TaskManager.entity.Employee;
 import com.example.TaskManager.entity.Membership;
 import com.example.TaskManager.entity.Team;
-import com.example.TaskManager.repository.EmployeeRepository;
+import com.example.TaskManager.entity.User;
+import com.example.TaskManager.repository.UserRepository;
 import com.example.TaskManager.repository.TeamRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
 @Component
 public class MembershipMapper {
     private static TeamRepository teamRepository;
-    private static EmployeeRepository employeeRepository;
+    private static UserRepository userRepository;
 
     public static MembershipDTO mapToMembershipDTO(Membership membership){
         if (membership == null) return null;
@@ -49,7 +48,7 @@ public class MembershipMapper {
             membership.setTeam(team.get());
         }
         if (membershipDTO.getEmployeeId() != null){
-            Optional<Employee> employee = employeeRepository.findById(membershipDTO.getEmployeeId());
+            Optional<User> employee = userRepository.findById(membershipDTO.getEmployeeId());
             membership.setEmployee(employee.get());
         }
         if ( membershipDTO.getAssignedTasks() != null && !membershipDTO.getAssignedTasks().isEmpty())
