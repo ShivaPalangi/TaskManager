@@ -20,7 +20,7 @@ public class CompanyMapper {
         if ( company.getTeams()!= null && !company.getTeams().isEmpty())
             companyDTO.setTeams(company.getTeams().stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList()));
         if ( company.getEmployees() != null && !company.getEmployees().isEmpty())
-            companyDTO.setEmployees(company.getEmployees().stream().map(EmployeeMapper::mapToEmployeeDTO).collect(Collectors.toList()));
+            companyDTO.setEmployees(company.getEmployees().stream().map(UserMapper::mapToEmployeeDTO).collect(Collectors.toList()));
         return companyDTO;
     }
 
@@ -35,7 +35,7 @@ public class CompanyMapper {
         if ( company.getTeams() != null && !company.getTeams().isEmpty())
             company.setTeams(companyDTO.getTeams().stream().map(TeamMapper::mapToTeamEntity).collect(Collectors.toList()));
         if ( companyDTO.getEmployees() != null && !companyDTO.getEmployees().isEmpty())
-            company.setEmployees(companyDTO.getEmployees().stream().map(EmployeeMapper::mapToEmployeeEntity).collect(Collectors.toList()));
+            company.setEmployees(companyDTO.getEmployees().stream().map(UserMapper::mapToEmployeeEntity).collect(Collectors.toList()));
         return company;
     }
 }
