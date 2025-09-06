@@ -25,7 +25,7 @@ public class CompanyService {
 
     public CompanyDTO updateCompany(CompanyDTO companyDTO) {
         Company companyToUpdate = companyRepository.findById(companyDTO.getId()).orElseThrow(
-                () -> new ResourceNotFoundException("Company", "Id", companyDTO.getId()));
+                () -> new ResourceNotFoundException("Company with id %d not found".formatted(companyDTO.getId())));
         updateCompanyEntityFromDTO(companyToUpdate, companyDTO);
         Company savedCompany = companyRepository.save(companyToUpdate);
         return CompanyMapper.mapToCompanyDTO(savedCompany);
@@ -34,7 +34,7 @@ public class CompanyService {
 
     public CompanyDTO getCompany(Long id) {
         Company company = companyRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Company", "Id", id));
+                () -> new ResourceNotFoundException("Company with id %d not found".formatted(id)));
         return CompanyMapper.mapToCompanyDTO(company);
     }
 
