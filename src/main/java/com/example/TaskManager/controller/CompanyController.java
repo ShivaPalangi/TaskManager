@@ -2,26 +2,27 @@ package com.example.TaskManager.controller;
 
 import com.example.TaskManager.dto.CompanyDTO;
 import com.example.TaskManager.service.CompanyService;
-import lombok.AllArgsConstructor;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CompanyController {
     private CompanyService companyService;
 
 
     @PostMapping("add-company")
-    public ResponseEntity<CompanyDTO> addCompany(@RequestBody CompanyDTO companyDTO){
+    public ResponseEntity<CompanyDTO> addCompany(@Valid @RequestBody CompanyDTO companyDTO){
         CompanyDTO createdCompany = companyService.addCompany(companyDTO);
         return new ResponseEntity<>(createdCompany, HttpStatus.CREATED);
     }
 
     @PatchMapping("company/{id}/update")
-    public ResponseEntity<CompanyDTO> updateCompany(@PathVariable Long id, @RequestBody CompanyDTO companyDTO){
+    public ResponseEntity<CompanyDTO> updateCompany(@PathVariable Long id, @Valid @RequestBody CompanyDTO companyDTO){
         companyDTO.setId(id);
         CompanyDTO updatedCompany = companyService.updateCompany(companyDTO);
         return new ResponseEntity<>(updatedCompany, HttpStatus.OK);
