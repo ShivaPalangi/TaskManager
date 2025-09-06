@@ -23,9 +23,11 @@ public class Token {
     @Enumerated(EnumType.STRING)
     private TokenType tokenType = TokenType.BEARER;
 
+    @Column(nullable = false)
     private boolean revoked;
     // برای وقتی که توکن توسط سیستم باطن میشه (لاگ اوت یا توسط ادمین محدود میشه)
 
+    @Column(nullable = false)
     private boolean expired;
 
     @ManyToOne(optional = false)
