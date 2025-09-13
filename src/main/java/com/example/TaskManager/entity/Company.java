@@ -21,9 +21,10 @@ public class Company {
     private String name;
     private String description;
 
-    @OneToMany(mappedBy = "company")
-    private List<Team> teams;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "owner", nullable = false)
+    private User owner;
 
     @OneToMany(mappedBy = "company")
-    private List<User> employees;
+    private List<Team> teams;
 }
