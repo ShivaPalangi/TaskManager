@@ -2,6 +2,7 @@ package com.example.TaskManager.dto;
 
 import com.example.TaskManager.validation.ValidationGroups;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import java.util.List;
@@ -16,5 +17,7 @@ public class CompanyDTO {
 
     private String description;
     private List<TeamDTO> teams;
-    private List<UserDTO> employees;
+
+    @NotNull(message = "Owner id is required", groups = ValidationGroups.Create.class)
+    private Long ownerId;
 }
