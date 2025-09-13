@@ -2,6 +2,7 @@ package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.CompanyDTO;
 import com.example.TaskManager.entity.Company;
+import com.example.TaskManager.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 public class CompanyMapper {
+    private static UserRepository userRepository;
 
     public static CompanyDTO mapToCompanyDTO(Company company){
         if (company == null) return null;
@@ -19,8 +21,8 @@ public class CompanyMapper {
         companyDTO.setDescription(company.getDescription());
         if ( company.getTeams()!= null && !company.getTeams().isEmpty())
             companyDTO.setTeams(company.getTeams().stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList()));
-        if ( company.getEmployees() != null && !company.getEmployees().isEmpty())
-            companyDTO.setEmployees(company.getEmployees().stream().map(UserMapper::mapToEmployeeDTO).collect(Collectors.toList()));
+        if (company.getOwner() != null)
+            companyDTO.setOwnerId(company.getOwner().getId());
         return companyDTO;
     }
 
@@ -34,8 +36,8 @@ public class CompanyMapper {
         company.setDescription(companyDTO.getDescription());
         if ( company.getTeams() != null && !company.getTeams().isEmpty())
             company.setTeams(companyDTO.getTeams().stream().map(TeamMapper::mapToTeamEntity).collect(Collectors.toList()));
-        if ( companyDTO.getEmployees() != null && !companyDTO.getEmployees().isEmpty())
-            company.setEmployees(companyDTO.getEmployees().stream().map(UserMapper::mapToEmployeeEntity).collect(Collectors.toList()));
+        if (companyDTO.getOwnerId() != null)
+            company.setOwner(userRepository.findById(companyDTO.getOwnerId()).get());
         return company;
     }
 }
