@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Component
 public class UserMapper {
-    private static CompanyRepository companyRepository;
 
     public static UserDTO mapToEmployeeDTO(User user){
         if (user == null) return null;
@@ -29,8 +28,8 @@ public class UserMapper {
         DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE;
         if (user.getDateOfBirth() != null)
             userDTO.setDateOfBirth(user.getDateOfBirth().format(formatter));
-        if (user.getCompany() != null)
-            userDTO.setCompanyId(user.getCompany().getId());
+        if (user.getCompanies() != null && !user.getCompanies().isEmpty())
+            userDTO.setCompanies(user.getCompanies().stream().map(CompanyMapper::mapToCompanyDTO).collect(Collectors.toList()));
         if (user.getTokens() != null && !user.getTokens().isEmpty())
             userDTO.setTokens(user.getTokens().stream().map(TokenMapper::mapToTokenDTO).collect(Collectors.toList()));
         if ( user.getMemberships() != null && !user.getMemberships().isEmpty())
@@ -50,10 +49,8 @@ public class UserMapper {
         user.setPassword(userDTO.getPassword());
         user.setRole(userDTO.getRole());
         user.setDateOfBirth(LocalDate.parse(userDTO.getDateOfBirth()));
-        if (userDTO.getCompanyId() != null){
-            Optional<Company> company = companyRepository.findById(userDTO.getCompanyId());
-            user.setCompany(company.get());
-        }
+        if (userDTO.getCompanies() != null && !userDTO.getCompanies().isEmpty())
+            user.setCompanies(userDTO.getCompanies().stream().map(CompanyMapper::mapToCompanyEntity).collect(Collectors.toList()));
         if (userDTO.getTokens() != null && !userDTO.getTokens().isEmpty())
             user.setTokens(userDTO.getTokens().stream().map(TokenMapper::mapToTokenEntity).collect(Collectors.toList()));
         if ( userDTO.getMemberships() != null && !userDTO.getMemberships().isEmpty())
