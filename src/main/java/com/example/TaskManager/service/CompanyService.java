@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class CompanyService {
 
-    private CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
 
 
     public CompanyDTO addCompany(CompanyDTO companyDTO) {

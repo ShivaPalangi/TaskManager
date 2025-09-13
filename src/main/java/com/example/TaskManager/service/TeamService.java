@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class TeamService  {
-    private TeamRepository teamRepository;
-    private CompanyRepository companyRepository;
+    private final TeamRepository teamRepository;
+    private final CompanyRepository companyRepository;
 
 
 
