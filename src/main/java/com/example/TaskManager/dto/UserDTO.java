@@ -1,6 +1,5 @@
 package com.example.TaskManager.dto;
 
-import com.example.TaskManager.entity.Token;
 import com.example.TaskManager.enums.Role;
 import com.example.TaskManager.validation.ValidationGroups;
 import jakarta.validation.constraints.Email;
@@ -13,20 +12,20 @@ import java.util.List;
 public class UserDTO {
     private Long id;
 
-    @NotBlank(message = "First Name is required", groups = ValidationGroups.Update.class)
+    @NotBlank(message = "First Name is required", groups = ValidationGroups.Create.class)
     private String firstName;
 
-    @NotBlank(message = "Last Name is required", groups = ValidationGroups.Update.class)
+    @NotBlank(message = "Last Name is required", groups = ValidationGroups.Create.class)
     private String lastName;
 
-    @NotBlank(message = "EmailAddress is required", groups = ValidationGroups.Update.class)
+    @NotBlank(message = "EmailAddress is required", groups = ValidationGroups.Create.class)
     @Email(message = "فرمت ایمیل نادرست است")
     private String emailAddress;
 
-    @NotBlank(message = "Password is required", groups = ValidationGroups.Update.class)
+    @NotBlank(message = "Password is required", groups = ValidationGroups.Create.class)
     private String password;
 
-    @NotNull(message = "Role is required", groups = ValidationGroups.Update.class)
+    @NotNull(message = "Role is required", groups = ValidationGroups.Create.class)
     private Role role;
 
     private String dateOfBirth;
