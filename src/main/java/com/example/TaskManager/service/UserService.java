@@ -21,9 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
 
 
-    public UserDTO changePassword(ChangePasswordRequest request, Principal connectedUser) {
-
-        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    public UserDTO changePassword(ChangePasswordRequest request, User user) {
 
         if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
             throw new IllegalStateException("Wrong password");
@@ -37,8 +35,7 @@ public class UserService {
     }
 
 
-    public UserDTO updateUser(UserDTO userDTO, Principal connectedUser) {
-        User user = (User) ((UsernamePasswordAuthenticationToken) connectedUser).getPrincipal();
+    public UserDTO updateUser(UserDTO userDTO, User user) {
         updateUserEntityFromDTO(user, userDTO);
         User savedUser = userRepository.save(user);
         return UserMapper.mapToEmployeeDTO(savedUser);
