@@ -44,12 +44,11 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user")
     private List<Token> tokens;
 
-    @ManyToOne
-    @JoinColumn(name = "company")
-    private Company company;
-
     @OneToMany(mappedBy = "employee")
     private List<Membership> memberships;
+
+    @OneToMany(mappedBy = "owner")
+    private List<Company> companies;
 
 
     @Override
