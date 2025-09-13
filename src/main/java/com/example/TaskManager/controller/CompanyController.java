@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping
 @RequiredArgsConstructor
 public class CompanyController {
-    private CompanyService companyService;
+    private final CompanyService companyService;
 
 
     @PostMapping("add-company")
