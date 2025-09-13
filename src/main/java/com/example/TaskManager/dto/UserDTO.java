@@ -30,6 +30,6 @@ public class UserDTO {
 
     private String dateOfBirth;
     private List<TokenDTO> tokens;
-    private Long companyId;
+    private List<CompanyDTO> companies;
     private List<MembershipDTO> memberships;
 }
