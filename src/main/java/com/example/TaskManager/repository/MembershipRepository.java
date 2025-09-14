@@ -15,4 +15,8 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     boolean existsByEmployeeIdAndTeamCompanyId(Long employeeId, Long companyId);
 
     boolean existsByEmployeeIdAndTeamId(Long employeeId, Long teamId);
+
+    Optional<Membership> findByIdAndTeamId(Long id, Long teamId);
+
+    Optional<Membership> findByEmployee(User employee);
 }
