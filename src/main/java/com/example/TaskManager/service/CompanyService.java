@@ -2,6 +2,7 @@ package com.example.TaskManager.service;
 
 import com.example.TaskManager.dto.CompanyDTO;
 import com.example.TaskManager.entity.Company;
+import com.example.TaskManager.entity.User;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.mapper.CompanyMapper;
 import com.example.TaskManager.repository.CompanyRepository;
@@ -16,8 +17,9 @@ public class CompanyService {
     private final CompanyRepository companyRepository;
 
 
-    public CompanyDTO addCompany(CompanyDTO companyDTO) {
+    public CompanyDTO addCompany(CompanyDTO companyDTO, User user) {
         Company company = CompanyMapper.mapToCompanyEntity(companyDTO);
+        company.setOwner(user);
         company = companyRepository.save(company);
         return CompanyMapper.mapToCompanyDTO(company);
     }
