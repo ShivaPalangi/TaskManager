@@ -2,6 +2,7 @@ package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.CompanyDTO;
 import com.example.TaskManager.entity.Company;
+import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -19,9 +20,9 @@ public class CompanyMapper {
         companyDTO.setId(company.getId());
         companyDTO.setName(company.getName());
         companyDTO.setDescription(company.getDescription());
-        if ( company.getTeams()!= null && !company.getTeams().isEmpty())
+        if ( company.getTeams()!= null && !company.getTeams().isEmpty() )
             companyDTO.setTeams(company.getTeams().stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList()));
-        if (company.getOwner() != null)
+        if ( company.getOwner() != null )
             companyDTO.setOwnerId(company.getOwner().getId());
         return companyDTO;
     }
@@ -34,10 +35,11 @@ public class CompanyMapper {
         company.setId(companyDTO.getId());
         company.setName(companyDTO.getName());
         company.setDescription(companyDTO.getDescription());
-        if ( company.getTeams() != null && !company.getTeams().isEmpty())
+        if ( company.getTeams() != null && !company.getTeams().isEmpty() )
             company.setTeams(companyDTO.getTeams().stream().map(TeamMapper::mapToTeamEntity).collect(Collectors.toList()));
-        if (companyDTO.getOwnerId() != null)
-            company.setOwner(userRepository.findById(companyDTO.getOwnerId()).get());
+        if ( companyDTO.getOwnerId() != null )
+            company.setOwner(userRepository.findById(companyDTO.getOwnerId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Owner not found with id " + companyDTO.getOwnerId())));
         return company;
     }
 }

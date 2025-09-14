@@ -2,12 +2,10 @@ package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.TokenDTO;
 import com.example.TaskManager.entity.Token;
-import com.example.TaskManager.entity.User;
+import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Optional;
 
 @AllArgsConstructor
 @Component
@@ -23,7 +21,7 @@ public class TokenMapper {
         tokenDTO.setTokenType(token.getTokenType());
         tokenDTO.setRevoked(token.isRevoked());
         tokenDTO.setExpired(token.isExpired());
-        if (token.getUser() != null)
+        if ( token.getUser() != null )
             tokenDTO.setUserId(token.getUser().getId());
         return tokenDTO;
     }
@@ -37,10 +35,9 @@ public class TokenMapper {
         token.setTokenType(tokenDTO.getTokenType());
         token.setRevoked(tokenDTO.isRevoked());
         token.setExpired(tokenDTO.isExpired());
-        if (token.getUser() != null){
-            Optional<User> optionalUser = userRepository.findById(token.getUser().getId());
-            token.setUser(optionalUser.get());
-        }
+        if ( tokenDTO.getUserId() != null)
+            token.setUser(userRepository.findById(tokenDTO.getUserId()).orElseThrow(
+                    () -> new ResourceNotFoundException("User not found with id: " + tokenDTO.getUserId())));
         return token;
     }
 }

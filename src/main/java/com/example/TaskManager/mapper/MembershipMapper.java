@@ -2,13 +2,11 @@ package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.MembershipDTO;
 import com.example.TaskManager.entity.Membership;
-import com.example.TaskManager.entity.Team;
-import com.example.TaskManager.entity.User;
+import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.UserRepository;
 import com.example.TaskManager.repository.TeamRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
@@ -23,13 +21,13 @@ public class MembershipMapper {
         MembershipDTO membershipDTO = new MembershipDTO();
         membershipDTO.setId(membership.getId());
         membershipDTO.setRole(membership.getRole());
-        if (membership.getTeam() != null)
+        if ( membership.getTeam() != null )
             membershipDTO.setTeamId(membership.getTeam().getId());
-        if (membership.getEmployee() != null)
+        if ( membership.getEmployee() != null )
             membershipDTO.setEmployeeId(membership.getEmployee().getId());
-        if ( membership.getAssignedTasks()!= null && !membership.getAssignedTasks().isEmpty())
+        if ( membership.getAssignedTasks()!= null && !membership.getAssignedTasks().isEmpty() )
             membershipDTO.setAssignedTasks(membership.getAssignedTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
-        if ( membership.getCreatedTasks() != null && !membership.getCreatedTasks().isEmpty())
+        if ( membership.getCreatedTasks() != null && !membership.getCreatedTasks().isEmpty() )
             membershipDTO.setCreatedTasks(membership.getCreatedTasks().stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
         return membershipDTO;
     }
@@ -41,17 +39,15 @@ public class MembershipMapper {
         Membership membership = new Membership();
         membership.setId(membershipDTO.getId());
         membership.setRole(membershipDTO.getRole());
-        if (membershipDTO.getTeamId() != null) {
-            Optional<Team> team = teamRepository.findById(membershipDTO.getTeamId());
-            membership.setTeam(team.get());
-        }
-        if (membershipDTO.getEmployeeId() != null){
-            Optional<User> employee = userRepository.findById(membershipDTO.getEmployeeId());
-            membership.setEmployee(employee.get());
-        }
-        if ( membershipDTO.getAssignedTasks() != null && !membershipDTO.getAssignedTasks().isEmpty())
+        if ( membershipDTO.getTeamId() != null )
+            membership.setTeam(teamRepository.findById(membershipDTO.getTeamId()).orElseThrow(
+                    () -> new ResourceNotFoundException("Team not found with id " + membershipDTO.getTeamId())));
+        if ( membershipDTO.getEmployeeId() != null )
+            membership.setEmployee(userRepository.findById(membershipDTO.getEmployeeId()).orElseThrow(
+                    () -> new ResourceNotFoundException("user not found with id " + membershipDTO.getEmployeeId())));
+        if ( membershipDTO.getAssignedTasks() != null && !membershipDTO.getAssignedTasks().isEmpty() )
             membership.setAssignedTasks(membershipDTO.getAssignedTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
-        if ( membershipDTO.getCreatedTasks() != null && !membershipDTO.getCreatedTasks().isEmpty())
+        if ( membershipDTO.getCreatedTasks() != null && !membershipDTO.getCreatedTasks().isEmpty() )
             membership.setCreatedTasks(membershipDTO.getCreatedTasks().stream().map(TaskMapper::mapToTaskEntity).collect(Collectors.toList()));
         return membership;
     }
