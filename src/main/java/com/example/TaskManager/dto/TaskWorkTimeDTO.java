@@ -8,12 +8,9 @@ import lombok.Data;
 @Data
 public class TaskWorkTimeDTO {
     private Long id;
-
     @NotBlank(message = "Start time is required", groups = ValidationGroups.Create.class)
     private String startTime;
-
     private String endTime;
-
     @NotNull(message = "Task id is required", groups = ValidationGroups.Create.class)
     private Long taskId;
 }

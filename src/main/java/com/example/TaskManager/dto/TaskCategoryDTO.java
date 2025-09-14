@@ -10,7 +10,6 @@ import java.util.List;
 public class TaskCategoryDTO {
     private Long id;
     @NotNull(message = "Category is required", groups = ValidationGroups.Create.class)
-
     private TaskCategories category;
     private List<TaskDTO> tasks;
 }
