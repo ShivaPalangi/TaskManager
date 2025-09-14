@@ -22,7 +22,7 @@ public class Company {
     private String description;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "owner", nullable = false)
+    @JoinColumn(name = "owner", nullable = false, updatable = false)
     private User owner;
 
     @OneToMany(mappedBy = "company")
