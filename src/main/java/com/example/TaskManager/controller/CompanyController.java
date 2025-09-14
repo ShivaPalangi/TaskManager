@@ -4,12 +4,14 @@ import com.example.TaskManager.dto.CompanyDTO;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.service.CompanyService;
 import com.example.TaskManager.service.PermissionService;
+import com.example.TaskManager.validation.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -23,7 +25,9 @@ public class CompanyController {
 
 
     @PostMapping("add-company")
-    public ResponseEntity<CompanyDTO> addCompany(@Valid @RequestBody CompanyDTO companyDTO, @AuthenticationPrincipal User user){
+    public ResponseEntity<CompanyDTO> addCompany(
+            @Validated(ValidationGroups.Create.class) @RequestBody CompanyDTO companyDTO,
+            @AuthenticationPrincipal User user){
         CompanyDTO createdCompany = companyService.addCompany(companyDTO, user);
         return new ResponseEntity<>(createdCompany, HttpStatus.CREATED);
     }
