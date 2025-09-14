@@ -3,7 +3,6 @@ package com.example.TaskManager.service;
 import com.example.TaskManager.entity.*;
 import com.example.TaskManager.enums.MembershipRoles;
 import com.example.TaskManager.exception.ResourceNotFoundException;
-import com.example.TaskManager.mapper.TaskMapper;
 import com.example.TaskManager.repository.CompanyRepository;
 import com.example.TaskManager.repository.MembershipRepository;
 import com.example.TaskManager.repository.TaskRepository;
@@ -45,7 +44,13 @@ public class PermissionService {
         return canManageTeam(user, team.getId());
     }
 
+
     public boolean isMemberOfCompany(User user, Long companyId) {
         return membershipRepository.existsByEmployeeIdAndTeamCompanyId(user.getId(), companyId);
+    }
+
+
+    public boolean isMemberOfTeam(User user, Long teamId) {
+        return membershipRepository.existsByEmployeeIdAndTeamId(user.getId(), teamId);
     }
 }
