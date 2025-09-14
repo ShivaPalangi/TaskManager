@@ -20,7 +20,7 @@ public class Membership {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MembershipRoles role = MembershipRoles.MEMBER;
+    private MembershipRoles role;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "team", nullable = false)
