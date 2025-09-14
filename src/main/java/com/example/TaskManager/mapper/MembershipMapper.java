@@ -22,7 +22,6 @@ public class MembershipMapper {
 
         MembershipDTO membershipDTO = new MembershipDTO();
         membershipDTO.setId(membership.getId());
-        membershipDTO.setPosition(membership.getPosition());
         membershipDTO.setRole(membership.getRole());
         if (membership.getTeam() != null)
             membershipDTO.setTeamId(membership.getTeam().getId());
@@ -41,7 +40,6 @@ public class MembershipMapper {
 
         Membership membership = new Membership();
         membership.setId(membershipDTO.getId());
-        membership.setPosition(membershipDTO.getPosition());
         membership.setRole(membershipDTO.getRole());
         if (membershipDTO.getTeamId() != null) {
             Optional<Team> team = teamRepository.findById(membershipDTO.getTeamId());
