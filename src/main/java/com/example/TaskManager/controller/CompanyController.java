@@ -24,7 +24,7 @@ public class CompanyController {
     private final PermissionService permissionService;
 
 
-    @PostMapping("add-company")
+    @PostMapping("companies")
     public ResponseEntity<CompanyDTO> addCompany(
             @Validated(ValidationGroups.Create.class) @RequestBody CompanyDTO companyDTO,
             @AuthenticationPrincipal User user){
@@ -32,14 +32,14 @@ public class CompanyController {
         return new ResponseEntity<>(createdCompany, HttpStatus.CREATED);
     }
 
-    @PatchMapping("{id}/update")
+    @PatchMapping("{id}")
     public ResponseEntity<CompanyDTO> updateCompany(
             @PathVariable @Min(1) Long id,
             @Valid @RequestBody CompanyDTO companyDTO,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.canManageCompany(user, id))
-            throw new AccessDeniedException("Only owner can update company");
+            throw new AccessDeniedException("Only company owner can update company.");
 
         companyDTO.setId(id);
         CompanyDTO updatedCompany = companyService.updateCompany(companyDTO);
@@ -48,11 +48,26 @@ public class CompanyController {
 
 
     @GetMapping("{id}")
-    public ResponseEntity<CompanyDTO> getCompanyDetails(@PathVariable @Min(1) Long id, @AuthenticationPrincipal User user) throws AccessDeniedException {
+    public ResponseEntity<CompanyDTO> getCompanyDetails(
+            @PathVariable @Min(1) Long id,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
         if ( !(permissionService.canManageCompany(user, id) || permissionService.isMemberOfCompany(user, id)) )
-            throw new AccessDeniedException("You are not the member of this company");
+            throw new AccessDeniedException("You are not the member of this company.");
 
         CompanyDTO companyDTO = companyService.getCompany(id);
         return new ResponseEntity<>(companyDTO, HttpStatus.OK);
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> delectCompany(
+            @PathVariable @Min(1) Long id,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if ( !permissionService.canManageCompany(user, id))
+            throw new AccessDeniedException("Only company owner can delete this company.");
+
+        companyService.deleteCompany(id);
+        return new ResponseEntity<>("Company successfully deleted.", HttpStatus.OK);
     }
 }
