@@ -57,8 +57,18 @@ public class MembershipService {
             if ( (membership.getRole() == MembershipRoles.OWNER)
                || (membership.getRole() == MembershipRoles.ADMIN && memberToDelete.getRole() == MembershipRoles.MEMBER)) {
                 membershipRepository.delete(memberToDelete);
-                return "Member deleted from team";
+                return "Member successfully deleted from team";
             }
         return "You can't delete this member";
     }
+
+
+    public MembershipDTO getMembership(Long teamId, Long memberId, Long companyId) {
+        teamRepository.findByIdAndCompanyId(teamId, companyId).orElseThrow(
+                () -> new ResourceNotFoundException("Company with id %d haven't any team with id %d".formatted(companyId, teamId)));
+        Membership membership = membershipRepository.findByIdAndTeamId(memberId, teamId).orElseThrow(
+                () -> new ResourceNotFoundException("Member with id %d is not the member of this team".formatted(memberId)));
+        return MembershipMapper.mapToMembershipDTO(membership);
+    }
+
 }
