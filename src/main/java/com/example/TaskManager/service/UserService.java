@@ -48,5 +48,7 @@ public class UserService {
             user.setLastName(userDTO.getLastName());
         if (userDTO.getDateOfBirth() != null)
             user.setDateOfBirth(LocalDate.parse(userDTO.getDateOfBirth()));
+        if (userDTO.getEmailAddress() != null && userRepository.existsByEmailAddress(userDTO.getEmailAddress()))
+            user.setEmailAddress(userDTO.getEmailAddress());
     }
 }
