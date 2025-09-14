@@ -2,7 +2,6 @@ package com.example.TaskManager.dto;
 
 import com.example.TaskManager.enums.MembershipRoles;
 import com.example.TaskManager.validation.ValidationGroups;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import java.util.List;

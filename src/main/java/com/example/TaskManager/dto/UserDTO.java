@@ -32,4 +32,5 @@ public class UserDTO {
     private List<TokenDTO> tokens;
     private List<CompanyDTO> companies;
     private List<MembershipDTO> memberships;
+    private List<TaskCategoryDTO> taskCategories;
 }
