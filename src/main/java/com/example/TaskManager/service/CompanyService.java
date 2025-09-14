@@ -47,4 +47,10 @@ public class CompanyService {
             companyToUpdate.setDescription(companyDTO.getDescription());
     }
 
+    public void deleteCompany(Long id) {
+        if (companyRepository.existsById(id))
+            companyRepository.deleteById(id);
+        else
+            throw new ResourceNotFoundException("Company with id %d not found".formatted(id));
+    }
 }
