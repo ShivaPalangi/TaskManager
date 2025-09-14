@@ -28,7 +28,7 @@ public class UserController {
         UserDTO user = userService.changePassword(request, currentUser);
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
-    @PatchMapping("update-user-info")
+    @PatchMapping
     public ResponseEntity<UserDTO> updateUserInfo(@Valid @RequestBody UserDTO userDTO, @AuthenticationPrincipal User currentUser) {
         UserDTO updatedUser = userService.updateUser(userDTO, currentUser);
         return new ResponseEntity<>(updatedUser, HttpStatus.OK);
