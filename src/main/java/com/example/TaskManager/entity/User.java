@@ -50,6 +50,9 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "owner")
     private List<Company> companies;
 
+    @OneToMany(mappedBy = "createdBy")
+    private List<TaskCategory> taskCategories;
+
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

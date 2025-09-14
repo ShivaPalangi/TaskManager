@@ -1,6 +1,5 @@
 package com.example.TaskManager.entity;
 
-import com.example.TaskManager.enums.TaskCategories;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,9 +17,15 @@ public class TaskCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TaskCategories category;
+    private String title;
+
+    @Column(nullable = false)
+    private Boolean isPrimary;
+
+    @ManyToOne
+    @JoinColumn(name = "created_by")
+    private User createdBy;
 
     @OneToMany(mappedBy = "taskCategory")
     private List<Task> tasks;
