@@ -4,6 +4,7 @@ import com.example.TaskManager.dto.MembershipDTO;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.service.MembershipService;
 import com.example.TaskManager.service.PermissionService;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/company/{companyId}/team/{teamId}/members")
@@ -21,9 +23,9 @@ public class MembershipController {
 
     @PostMapping("{memberId}/add-admin")
     public ResponseEntity<MembershipDTO> addTeamAdmin(
-            @PathVariable("companyId") Long companyId,
-            @PathVariable("teamId") Long teamId,
-            @PathVariable("memberId") Long memberId,
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
+            @Min(1) @PathVariable("memberId") Long memberId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.canManageCompany(user, companyId))
@@ -36,8 +38,8 @@ public class MembershipController {
 
     @PostMapping
     public ResponseEntity<MembershipDTO> addTeamMember(
-            @PathVariable("companyId") Long companyId,
-            @PathVariable("teamId") Long teamId,
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
             @RequestBody String emailAddress,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
@@ -51,9 +53,9 @@ public class MembershipController {
 
     @DeleteMapping("{memberId}")
     public ResponseEntity<String> deleteTeamMember(
-            @PathVariable("companyId") Long companyId,
-            @PathVariable("teamId") Long teamId,
-            @PathVariable("memberId") Long memberId,
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
+            @Min(1) @PathVariable("memberId") Long memberId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if (permissionService.canManageTeam(user, teamId))
@@ -66,16 +68,44 @@ public class MembershipController {
 
     @GetMapping("{memberId}")
     public ResponseEntity<MembershipDTO> getTeamMember(
-            @PathVariable("companyId") Long companyId,
-            @PathVariable("teamId") Long teamId,
-            @PathVariable("memberId") Long memberId,
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
+            @Min(1) @PathVariable("memberId") Long memberId,
             @AuthenticationPrincipal User user
     ) throws AccessDeniedException {
 
-        if (permissionService.isMemberOfTeam(user, teamId))
+        if (permissionService.isMemberOfTeam(user, teamId, companyId))
             throw new AccessDeniedException("You are not the member of this team");
 
         MembershipDTO membershipDTO = membershipService.getMembership(teamId, memberId, companyId);
         return new ResponseEntity<>(membershipDTO, HttpStatus.OK);
+    }
+
+    @GetMapping("search")
+    public ResponseEntity<List<MembershipDTO>> searchTeamMembers(
+            @RequestParam String title,
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if (!permissionService.isMemberOfTeam(user, teamId, companyId))
+            throw new AccessDeniedException("You are not the member of this team");
+
+        List<MembershipDTO> members = membershipService.searchTeamMembers(teamId, title);
+        return new ResponseEntity<>(members, HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<MembershipDTO>> getTeamMembers(
+            @Min(1) @PathVariable("companyId") Long companyId,
+            @Min(1) @PathVariable("teamId") Long teamId,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if (!permissionService.isMemberOfTeam(user, teamId, companyId))
+            throw new AccessDeniedException("You are not the member of this team");
+
+        List<MembershipDTO> members = membershipService.getTeamMembers(teamId);
+        return new ResponseEntity<>(members, HttpStatus.OK);
+
     }
 }
