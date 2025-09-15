@@ -24,8 +24,8 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategory, Long
 
     @Query("""
             SELECT tc FROM TaskCategory tc WHERE
-            LOWER(tc.title) LIKE LOWER(CONCAT('%', :title, '%')) AND
-            (tc.createdBy = :user OR tc.isPrimary = true)
+            LOWER(tc.title) LIKE LOWER(CONCAT('%', :title, '%'))
+            AND (tc.createdBy = :user OR tc.isPrimary = true)
             """)
     List<TaskCategory> findCategoriesByTitleAndUserOrPrimary(@Param("title") String title, @Param("user") User user);
 
