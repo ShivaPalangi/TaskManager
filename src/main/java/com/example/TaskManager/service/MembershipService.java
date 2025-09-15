@@ -13,6 +13,9 @@ import com.example.TaskManager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class MembershipService {
@@ -51,7 +54,7 @@ public class MembershipService {
     public String deleteMember(Long teamId, Long memberId, User user) {
         Membership memberToDelete = membershipRepository.findByIdAndTeamId(memberId, teamId).orElseThrow(
                 () -> new ResourceNotFoundException("Member with id %d is not the member of this team".formatted(memberId)));
-        Membership membership = membershipRepository.findByEmployee(user).orElseThrow(
+        Membership membership = membershipRepository.findByEmployeeAndTeamId(user, teamId).orElseThrow(
                 () -> new ResourceNotFoundException("Member with id %d is not the member of this team".formatted(memberId)));
         if ( !(memberToDelete.getRole() == MembershipRoles.OWNER))
             if ( (membership.getRole() == MembershipRoles.OWNER)
@@ -71,4 +74,13 @@ public class MembershipService {
         return MembershipMapper.mapToMembershipDTO(membership);
     }
 
+    public List<MembershipDTO> getTeamMembers(Long teamId) {
+        List<Membership> memberships = membershipRepository.findAllByTeamId(teamId);
+        return memberships.stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList());
+    }
+
+    public List<MembershipDTO> searchTeamMembers(Long teamId, String title) {
+        List<Membership> memberships = membershipRepository.findByTeamIdAndEmployeeNameContaining(teamId, title);
+        return memberships.stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList());
+    }
 }
