@@ -6,14 +6,17 @@ import com.example.TaskManager.entity.User;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.mapper.CompanyMapper;
 import com.example.TaskManager.repository.CompanyRepository;
+import com.example.TaskManager.repository.MembershipRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
 @RequiredArgsConstructor
 public class CompanyService {
-
     private final CompanyRepository companyRepository;
 
 
@@ -52,5 +55,15 @@ public class CompanyService {
             companyRepository.deleteById(id);
         else
             throw new ResourceNotFoundException("Company with id %d not found".formatted(id));
+    }
+
+    public List<CompanyDTO> getAllCompanies(User user) {
+        List<Company> companies = companyRepository.findCompaniesByUser(user);
+        return companies.stream().map(CompanyMapper::mapToCompanyDTO).collect(Collectors.toList());
+    }
+
+    public List<CompanyDTO> searchCompanies(User user, String title) {
+        List<Company> companies = companyRepository.findCompaniesByUserAndNameContaining(user, title);
+        return companies.stream().map(CompanyMapper::mapToCompanyDTO).collect(Collectors.toList());
     }
 }
