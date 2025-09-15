@@ -15,6 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequestMapping("api/v1/company/{companyId}")
@@ -24,7 +25,7 @@ public class TeamController {
     private final PermissionService permissionService;
 
 
-    @PostMapping("add-team")
+    @PostMapping("teams")
     public ResponseEntity<TeamDTO> addTeam(
             @Validated(ValidationGroups.Create.class) @RequestBody TeamDTO teamDTO,
             @PathVariable("companyId") @Min(1) Long companyId,
@@ -40,7 +41,7 @@ public class TeamController {
 
 
 
-    @PatchMapping("team/{teamId}/update")
+    @PatchMapping("/teams/{teamId}")
     public ResponseEntity<TeamDTO> updateTeam(
             @Valid @RequestBody TeamDTO teamDTO,
             @PathVariable("companyId") @Min(1) Long companyId,
@@ -58,16 +59,57 @@ public class TeamController {
 
 
 
-    @GetMapping("team/{teamId}")
+    @GetMapping("teams/{teamId}")
     public  ResponseEntity<TeamDTO> getTeam(
             @PathVariable("companyId") @Min(1) Long companyId,
             @PathVariable("teamId") @Min(1) Long teamId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if ( !permissionService.isMemberOfTeam(user, teamId))
+        if ( !permissionService.isMemberOfTeam(user, teamId, companyId))
             throw new AccessDeniedException("You are not the member of this team");
 
         TeamDTO teamDTO = teamService.getTeam(teamId);
         return new ResponseEntity<>(teamDTO, HttpStatus.OK);
+    }
+
+
+
+    @DeleteMapping("teams/{teamId}")
+    public ResponseEntity<String> deleteTeam(
+            @PathVariable("companyId") @Min(1) Long companyId,
+            @PathVariable("teamId") @Min(1) Long teamId,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if ( !permissionService.canManageCompany(user, companyId))
+            throw new AccessDeniedException("You are not allowed this team!");
+        String response = teamService.deleteTeam(teamId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+
+
+    @GetMapping("teams")
+    public ResponseEntity<List<TeamDTO>> getTeams(
+            @PathVariable("companyId") @Min(1) Long companyId,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if ( !permissionService.isMemberOfCompany(user, companyId))
+            throw new AccessDeniedException("You are not the member of this company");
+        List<TeamDTO> teams = teamService.getTeams(companyId);
+        return new ResponseEntity<>(teams, HttpStatus.OK);
+    }
+
+
+
+    @GetMapping("teams/search")
+    public ResponseEntity<List<TeamDTO>> searchTeams(
+            @PathVariable("companyId") @Min(1) Long companyId,
+            @RequestParam String name,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if ( !permissionService.isMemberOfCompany(user, companyId))
+            throw new AccessDeniedException("You are not the member of this company");
+        List<TeamDTO> teams = teamService.searchTeams(companyId, name);
+        return new ResponseEntity<>(teams, HttpStatus.OK);
     }
 }
