@@ -20,14 +20,17 @@ public interface TaskCategoryRepository extends JpaRepository<TaskCategory, Long
 
     List<TaskCategory> findAllByIsPrimaryTrueOrCreatedBy(User createdBy);
 
-    TaskCategory findByTitleIgnoreCase(String title);
-
     List<TaskCategory> findAllByIsPrimaryTrueAndTitleContainingIgnoreCase(String title);
 
     @Query("""
-            SELECT tc FROM TaskCategory tc WHERE 
-            LOWER(tc.title) LIKE LOWER(CONCAT('%', :title, '%')) AND 
+            SELECT tc FROM TaskCategory tc WHERE
+            LOWER(tc.title) LIKE LOWER(CONCAT('%', :title, '%')) AND
             (tc.createdBy = :user OR tc.isPrimary = true)
             """)
     List<TaskCategory> findCategoriesByTitleAndUserOrPrimary(@Param("title") String title, @Param("user") User user);
+
+    boolean existsByIdAndIsPrimaryTrue(Long id);
+
+    boolean existsByIdAndCreatedBy(Long id, User createdBy);
+
 }
