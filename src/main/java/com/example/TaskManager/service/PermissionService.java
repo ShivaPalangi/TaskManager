@@ -43,13 +43,19 @@ public class PermissionService {
     }
 
 
+    public boolean isResponsible(Long taskId, User user) {
+        return taskRepository.existsByIdAndResponsibleEmployee(taskId, user);
+    }
+
+
     public boolean isMemberOfCompany(User user, Long companyId) {
         return membershipRepository.existsByEmployeeIdAndTeamCompanyId(user.getId(), companyId);
     }
 
 
-    public boolean isMemberOfTeam(User user, Long teamId) {
-        return membershipRepository.existsByEmployeeIdAndTeamId(user.getId(), teamId);
+    public boolean isMemberOfTeam(User user, Long teamId, Long companyId) {
+        return membershipRepository.existsByEmployeeAndTeamId(user, teamId) &&
+                teamRepository.existsByIdAndCompanyId(teamId, companyId);
     }
 
 
@@ -70,4 +76,9 @@ public class PermissionService {
         return taskCategoryRepository.existsByIdAndCreatedBy(categoryId, user);
     }
 
+    public boolean canGetTaskDetail(User user, Long taskId) {
+        Task task = taskRepository.findById(taskId).orElseThrow(
+                () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
+        return membershipRepository.existsByEmployeeAndTeamId(user, task.getResponsible().getTeam().getId());
+    }
 }
