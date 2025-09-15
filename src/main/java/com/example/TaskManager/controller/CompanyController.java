@@ -15,16 +15,17 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/company")
+@RequestMapping("api/v1/companies")
 @RequiredArgsConstructor
 public class CompanyController {
     private final CompanyService companyService;
     private final PermissionService permissionService;
 
 
-    @PostMapping("companies")
+    @PostMapping
     public ResponseEntity<CompanyDTO> addCompany(
             @Validated(ValidationGroups.Create.class) @RequestBody CompanyDTO companyDTO,
             @AuthenticationPrincipal User user){
@@ -69,5 +70,20 @@ public class CompanyController {
 
         companyService.deleteCompany(id);
         return new ResponseEntity<>("Company successfully deleted.", HttpStatus.OK);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CompanyDTO>> getAllCompanies(@AuthenticationPrincipal User user) {
+        List<CompanyDTO> companyDTOList = companyService.getAllCompanies(user);
+        return new ResponseEntity<>(companyDTOList, HttpStatus.OK);
+    }
+
+
+    @GetMapping("search")
+    public ResponseEntity<List<CompanyDTO>> searchCompany(
+            @RequestParam String title,
+            @AuthenticationPrincipal User user){
+        List<CompanyDTO> companyDTOList = companyService.searchCompanies(user, title);
+        return new ResponseEntity<>(companyDTOList, HttpStatus.OK);
     }
 }
