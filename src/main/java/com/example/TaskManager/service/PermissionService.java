@@ -3,10 +3,7 @@ package com.example.TaskManager.service;
 import com.example.TaskManager.entity.*;
 import com.example.TaskManager.enums.MembershipRoles;
 import com.example.TaskManager.exception.ResourceNotFoundException;
-import com.example.TaskManager.repository.CompanyRepository;
-import com.example.TaskManager.repository.MembershipRepository;
-import com.example.TaskManager.repository.TaskRepository;
-import com.example.TaskManager.repository.TeamRepository;
+import com.example.TaskManager.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +16,7 @@ public class PermissionService {
     private final TeamRepository teamRepository;
     private final TaskRepository taskRepository;
     private final MembershipRepository membershipRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
 
 
     public boolean canManageCompany(User user, Long companyId) {
@@ -53,4 +51,23 @@ public class PermissionService {
     public boolean isMemberOfTeam(User user, Long teamId) {
         return membershipRepository.existsByEmployeeIdAndTeamId(user.getId(), teamId);
     }
+
+
+    public boolean canGetTaskCategoryDetail(User user, Long categoryId) {
+        if ( taskCategoryRepository.existsByIdAndIsPrimaryTrue(categoryId) )
+            return true;
+        return taskCategoryRepository.existsByIdAndCreatedBy(categoryId, user);
+    }
+
+
+    public boolean canManagePrimaryTaskDetail(Long categoryId) {
+        return taskCategoryRepository.existsByIdAndIsPrimaryTrue(categoryId);
+    }
+
+
+
+    public boolean canManageTaskCategory(Long categoryId, User user) {
+        return taskCategoryRepository.existsByIdAndCreatedBy(categoryId, user);
+    }
+
 }
