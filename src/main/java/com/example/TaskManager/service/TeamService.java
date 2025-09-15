@@ -1,7 +1,6 @@
 package com.example.TaskManager.service;
 
 import com.example.TaskManager.dto.TeamDTO;
-import com.example.TaskManager.entity.Company;
 import com.example.TaskManager.entity.Team;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.enums.MembershipRoles;
@@ -11,6 +10,9 @@ import com.example.TaskManager.repository.CompanyRepository;
 import com.example.TaskManager.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -53,5 +55,20 @@ public class TeamService  {
             teamToUpdate.setName(teamDTO.getName());
         if (teamDTO.getDescription() != null)
             teamToUpdate.setDescription(teamDTO.getDescription());
+    }
+
+    public String deleteTeam(Long teamId) {
+        teamRepository.deleteById(teamId);
+        return "Team successfully deleted";
+    }
+
+    public List<TeamDTO> getTeams(Long companyId) {
+        List<Team> teams = teamRepository.findAllByCompanyId(companyId);
+        return teams.stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList());
+    }
+
+    public List<TeamDTO> searchTeams(Long companyId, String name) {
+        List<Team> teams = teamRepository.findAllByCompanyIdAndNameContainingIgnoreCase(companyId, name);
+        return teams.stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList());
     }
 }
