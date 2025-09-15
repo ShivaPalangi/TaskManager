@@ -21,7 +21,7 @@ public class TaskWorkTime {
     private Long id;
 
     @CreatedDate
-    @Column(updatable = false)
+    @Column(updatable = false, nullable = false)
     private LocalDateTime startTime;
 
     @Column(insertable = false, updatable = false)
@@ -30,4 +30,8 @@ public class TaskWorkTime {
     @ManyToOne(optional = false)
     @JoinColumn(name = "task", nullable = false)
     private Task task;
+
+    public TaskWorkTime(Task task) {
+        this.task = task;
+    }
 }
