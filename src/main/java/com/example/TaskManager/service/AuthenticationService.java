@@ -6,6 +6,7 @@ import com.example.TaskManager.dto.AuthenticationResponse;
 import com.example.TaskManager.dto.RegisterRequest;
 import com.example.TaskManager.entity.Token;
 import com.example.TaskManager.entity.User;
+import com.example.TaskManager.enums.Role;
 import com.example.TaskManager.enums.TokenType;
 import com.example.TaskManager.repository.TokenRepository;
 import com.example.TaskManager.repository.UserRepository;
@@ -41,8 +42,9 @@ public class AuthenticationService {
                 .lastName(request.getLastname())
                 .emailAddress(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .dateOfBirth(LocalDate.parse(request.getDateOfBirth()))
-                .role(request.getRole())
+                .dateOfBirth(request.getDateOfBirth() != null ?
+                        LocalDate.parse(request.getDateOfBirth()) : null)
+                .role(request.getRole() != null ? request.getRole() : Role.USER)
                 .build();
         User savedUser = userRepository.save(user);
         String jwtToken = jwtService.generateToken(user);
