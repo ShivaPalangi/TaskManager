@@ -8,14 +8,16 @@ import com.example.TaskManager.validation.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/companies")
@@ -26,15 +28,29 @@ public class CompanyController {
 
 
     @PostMapping
-    public ResponseEntity<CompanyDTO> addCompany(
+    public ResponseEntity<?> addCompany(
             @Validated(ValidationGroups.Create.class) @RequestBody CompanyDTO companyDTO,
             @AuthenticationPrincipal User user){
         CompanyDTO createdCompany = companyService.addCompany(companyDTO, user);
-        return new ResponseEntity<>(createdCompany, HttpStatus.CREATED);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()  // current url
+                .path("/{id}")
+                .buildAndExpand(createdCompany.getId())
+                .toUri();
+
+        Map<String, Object> response = Map.of(
+                "message", "Company created successfully",
+                "data", createdCompany
+        );
+        return ResponseEntity.created(location).body(response);
     }
 
-    @PatchMapping("{id}")
-    public ResponseEntity<CompanyDTO> updateCompany(
+
+
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateCompany(
             @PathVariable @Min(1) Long id,
             @Valid @RequestBody CompanyDTO companyDTO,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
@@ -44,11 +60,18 @@ public class CompanyController {
 
         companyDTO.setId(id);
         CompanyDTO updatedCompany = companyService.updateCompany(companyDTO);
-        return new ResponseEntity<>(updatedCompany, HttpStatus.OK);
+
+        Map<String, Object> response = Map.of(
+                "message", "Company updated successfully",
+                "data", updatedCompany
+        );
+        return ResponseEntity.ok(response);
     }
 
 
-    @GetMapping("{id}")
+
+
+    @GetMapping("/{id}")
     public ResponseEntity<CompanyDTO> getCompanyDetails(
             @PathVariable @Min(1) Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
@@ -57,11 +80,14 @@ public class CompanyController {
             throw new AccessDeniedException("You are not the member of this company.");
 
         CompanyDTO companyDTO = companyService.getCompany(id);
-        return new ResponseEntity<>(companyDTO, HttpStatus.OK);
+        return ResponseEntity.ok(companyDTO);
     }
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<String> delectCompany(
+
+
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteCompany(
             @PathVariable @Min(1) Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
@@ -69,21 +95,39 @@ public class CompanyController {
             throw new AccessDeniedException("Only company owner can delete this company.");
 
         companyService.deleteCompany(id);
-        return new ResponseEntity<>("Company successfully deleted.", HttpStatus.OK);
+
+        String redirectUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath() // base url
+                .path("/api/v1/companies")
+                .build()
+                .toUriString();
+
+        Map<String, Object> response = Map.of(
+                "redirect", true,
+                "redirectUrl", redirectUrl,
+                "message", "Company with id %d deleted successfully".formatted(id)
+        );
+
+        return ResponseEntity.ok(response);
     }
+
+
+
 
     @GetMapping
     public ResponseEntity<List<CompanyDTO>> getAllCompanies(@AuthenticationPrincipal User user) {
         List<CompanyDTO> companyDTOList = companyService.getAllCompanies(user);
-        return new ResponseEntity<>(companyDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(companyDTOList);
     }
 
 
-    @GetMapping("search")
+
+
+    @GetMapping("/search")
     public ResponseEntity<List<CompanyDTO>> searchCompany(
             @RequestParam String title,
             @AuthenticationPrincipal User user){
         List<CompanyDTO> companyDTOList = companyService.searchCompanies(user, title);
-        return new ResponseEntity<>(companyDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(companyDTOList);
     }
 }
