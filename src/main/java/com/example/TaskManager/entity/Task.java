@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,8 +25,14 @@ public class Task {
     @Column(nullable = false)
     private String name;
     private String description;
+
+    @CreatedDate
+    @Column(updatable = false, nullable = false)
     private LocalDateTime startTime;
+
+    @Column(insertable = false, updatable = false)
     private LocalDateTime endTime;
+
     private LocalDateTime deadtime;
     private LocalDateTime duration;
 
