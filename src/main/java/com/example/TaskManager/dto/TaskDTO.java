@@ -29,7 +29,6 @@ public class TaskDTO {
     @NotNull(message = "Responsible Id is required", groups = ValidationGroups.Create.class)
     private Long responsibleId;
 
-    @NotNull(message = "Creator Id is required", groups = ValidationGroups.Create.class)
     private Long creatorId;
 
     private List<TaskWorkTimeDTO> workTimes;
