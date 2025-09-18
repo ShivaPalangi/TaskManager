@@ -6,11 +6,12 @@ import com.example.TaskManager.entity.User;
 import com.example.TaskManager.enums.MembershipRoles;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.mapper.TeamMapper;
-import com.example.TaskManager.repository.CompanyRepository;
 import com.example.TaskManager.repository.TeamRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,35 +20,37 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TeamService  {
     private final TeamRepository teamRepository;
-    private final CompanyRepository companyRepository;
     private final MembershipService membershipService;
+    private final TeamMapper teamMapper;
 
 
 
-    public TeamDTO addTeam(TeamDTO teamDTO, Long companyId, User user) {
-        if ( !companyRepository.existsById(companyId))
-            throw new ResourceNotFoundException("Company with id %d not found".formatted(companyId));
-        Team team = TeamMapper.mapToTeamEntity(teamDTO);
+    @Transactional
+    public TeamDTO addTeam(TeamDTO teamDTO, User user) {
+        Team team = teamMapper.mapToTeamEntity(teamDTO);
         Team savedTeam = teamRepository.save(team);
         membershipService.createMembership(team, user, MembershipRoles.OWNER);
-        return TeamMapper.mapToTeamDTO(savedTeam);
+        return teamMapper.mapToTeamDTO(savedTeam);
     }
+
 
 
     public TeamDTO getTeam(Long teamId) {
         Team team = teamRepository.findById(teamId).orElseThrow(
                 () -> new ResourceNotFoundException("Team with id %d not found".formatted(teamId)));
-        return TeamMapper.mapToTeamDTO(team);
+        return teamMapper.mapToTeamDTO(team);
     }
 
 
 
+
+    @Transactional
     public TeamDTO updateTeam(TeamDTO teamDTO) {
         Team teamToUpdate = teamRepository.findByIdAndCompanyId(teamDTO.getId(), teamDTO.getCompanyId()).orElseThrow(
                 () -> new ResourceNotFoundException("Team with id %d not found".formatted(teamDTO.getId())));
         UpdateTeamEntityFromDTO(teamToUpdate, teamDTO);
         Team savedTeam = teamRepository.save(teamToUpdate);
-        return TeamMapper.mapToTeamDTO(savedTeam);
+        return teamMapper.mapToTeamDTO(savedTeam);
     }
 
     private void UpdateTeamEntityFromDTO(Team teamToUpdate, TeamDTO teamDTO) {
@@ -57,18 +60,33 @@ public class TeamService  {
             teamToUpdate.setDescription(teamDTO.getDescription());
     }
 
-    public String deleteTeam(Long teamId) {
+
+
+
+    public void deleteTeam(Long teamId) {
         teamRepository.deleteById(teamId);
-        return "Team successfully deleted";
     }
+
+
+
 
     public List<TeamDTO> getTeams(Long companyId) {
         List<Team> teams = teamRepository.findAllByCompanyId(companyId);
-        return teams.stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList());
+        return teams
+                .stream()
+                .sorted(Comparator.comparing(Team::getName))
+                .map(teamMapper::mapToTeamDTO)
+                .collect(Collectors.toList());
     }
+
+
 
     public List<TeamDTO> searchTeams(Long companyId, String name) {
         List<Team> teams = teamRepository.findAllByCompanyIdAndNameContainingIgnoreCase(companyId, name);
-        return teams.stream().map(TeamMapper::mapToTeamDTO).collect(Collectors.toList());
+        return teams
+                .stream()
+                .sorted(Comparator.comparing(Team::getName))
+                .map(teamMapper::mapToTeamDTO)
+                .collect(Collectors.toList());
     }
 }
