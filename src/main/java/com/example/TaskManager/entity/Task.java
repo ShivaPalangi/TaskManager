@@ -6,6 +6,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -44,16 +46,19 @@ public class Task {
     @Column(nullable = false)
     private TaskStatusTypes taskStatus;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "task_category", nullable = false)
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "task_category")
     private TaskCategory taskCategory;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "responsible", nullable = false)
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "responsible")
     private Membership responsible;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "created_by", nullable = false)
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JoinColumn(name = "created_by")
     private Membership createdBy;
 
     @OneToMany(mappedBy = "task")

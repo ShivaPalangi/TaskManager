@@ -25,6 +25,6 @@ public class Company {
     @JoinColumn(name = "owner", nullable = false, updatable = false)
     private User owner;
 
-    @OneToMany(mappedBy = "company")
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL,  orphanRemoval = true)
     private List<Team> teams;
 }

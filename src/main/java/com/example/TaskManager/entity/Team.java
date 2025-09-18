@@ -25,6 +25,6 @@ public class Team {
     @JoinColumn(name = "company", nullable = false)
     private Company company;
 
-    @OneToMany(mappedBy = "team")
+    @OneToMany(mappedBy = "team",  cascade = CascadeType.ALL,  orphanRemoval = true)
     private List<Membership> memberships;
 }
