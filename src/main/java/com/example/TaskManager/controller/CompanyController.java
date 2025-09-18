@@ -34,16 +34,13 @@ public class CompanyController {
         CompanyDTO createdCompany = companyService.addCompany(companyDTO, user);
 
         URI location = ServletUriComponentsBuilder
-                .fromCurrentRequest()  // current url
+                .fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdCompany.getId())
                 .toUri();
 
-        Map<String, Object> response = Map.of(
-                "message", "Company created successfully",
-                "data", createdCompany
-        );
-        return ResponseEntity.created(location).body(response);
+        return ResponseEntity.created(location).body(
+                Map.of("message", "Company created successfully", "data", createdCompany));
     }
 
 
@@ -61,11 +58,8 @@ public class CompanyController {
         companyDTO.setId(id);
         CompanyDTO updatedCompany = companyService.updateCompany(companyDTO);
 
-        Map<String, Object> response = Map.of(
-                "message", "Company updated successfully",
-                "data", updatedCompany
-        );
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                Map.of("message", "Company updated successfully", "data", updatedCompany));
     }
 
 
