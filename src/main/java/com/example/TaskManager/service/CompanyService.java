@@ -7,7 +7,7 @@ import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.mapper.CompanyMapper;
 import com.example.TaskManager.repository.CompanyRepository;
 import com.example.TaskManager.repository.MembershipRepository;
-import jakarta.validation.Valid;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,24 +21,26 @@ import java.util.stream.Collectors;
 public class CompanyService {
     private final CompanyRepository companyRepository;
     private final MembershipRepository membershipRepository;
+    private final CompanyMapper companyMapper;
 
 
     public CompanyDTO addCompany( CompanyDTO companyDTO, User user) {
-        Company company = CompanyMapper.mapToCompanyEntity(companyDTO);
+        Company company = companyMapper.mapToCompanyEntity(companyDTO);
         company.setOwner(user);
         companyRepository.save(company);
-        return CompanyMapper.mapToCompanyDTO(company);
+        return companyMapper.mapToCompanyDTO(company);
     }
 
 
 
 
-    public CompanyDTO updateCompany(@Valid CompanyDTO companyDTO) {
+    @Transactional
+    public CompanyDTO updateCompany(CompanyDTO companyDTO) {
         Company companyToUpdate = companyRepository.findById(companyDTO.getId()).orElseThrow(
                 () -> new ResourceNotFoundException("Company with id %d not found".formatted(companyDTO.getId())));
         updateCompanyEntityFromDTO(companyToUpdate, companyDTO);
         Company savedCompany = companyRepository.save(companyToUpdate);
-        return CompanyMapper.mapToCompanyDTO(savedCompany);
+        return companyMapper.mapToCompanyDTO(savedCompany);
     }
 
     private void updateCompanyEntityFromDTO(Company companyToUpdate, CompanyDTO companyDTO) {
@@ -54,17 +56,14 @@ public class CompanyService {
     public CompanyDTO getCompany(Long id) {
         Company company = companyRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Company with id %d not found".formatted(id)));
-        return CompanyMapper.mapToCompanyDTO(company);
+        return companyMapper.mapToCompanyDTO(company);
     }
 
 
 
 
     public void deleteCompany(Long id) {
-        if (companyRepository.existsById(id))
-            companyRepository.deleteById(id);
-        else
-            throw new ResourceNotFoundException("Company with id %d not found".formatted(id));
+        companyRepository.deleteById(id);
     }
 
 
@@ -79,7 +78,7 @@ public class CompanyService {
         return companies
                 .stream()
                 .sorted(Comparator.comparing(Company::getName))
-                .map(CompanyMapper::mapToCompanyDTO)
+                .map(companyMapper::mapToCompanyDTO)
                 .collect(Collectors.toList());
     }
 
@@ -89,6 +88,10 @@ public class CompanyService {
     public List<CompanyDTO> searchCompanies(User user, String title) {
         List<Company> companies = companyRepository.findCompaniesByUserAndNameContaining(user, title);
         companies.addAll(companyRepository.findAllByOwnerAndNameContaining(user, title));
-        return companies.stream().map(CompanyMapper::mapToCompanyDTO).collect(Collectors.toList());
+        return companies
+                .stream()
+                .sorted(Comparator.comparing(Company::getName))
+                .map(companyMapper::mapToCompanyDTO)
+                .collect(Collectors.toList());
     }
 }
