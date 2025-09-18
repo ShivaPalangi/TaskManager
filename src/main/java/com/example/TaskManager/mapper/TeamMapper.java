@@ -4,16 +4,17 @@ import com.example.TaskManager.dto.TeamDTO;
 import com.example.TaskManager.entity.Team;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.CompanyRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class TeamMapper {
-    private static CompanyRepository companyRepository;
+    private final CompanyRepository companyRepository;
+    private final MembershipMapper membershipMapper;
 
-    public static TeamDTO mapToTeamDTO(Team team){
+    public TeamDTO mapToTeamDTO(Team team){
         if (team == null) return null;
 
         TeamDTO teamDTO = new TeamDTO();
@@ -23,12 +24,12 @@ public class TeamMapper {
         if ( team.getCompany() != null )
             teamDTO.setCompanyId(team.getCompany().getId());
         if ( team.getMemberships() != null && !team.getMemberships().isEmpty() )
-            teamDTO.setMemberships(team.getMemberships().stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
+            teamDTO.setMemberships(team.getMemberships().stream().map(membershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
         return teamDTO;
     }
 
 
-    public static Team mapToTeamEntity(TeamDTO teamDTO){
+    public Team mapToTeamEntity(TeamDTO teamDTO){
         if (teamDTO == null) return null;
 
         Team team = new Team();
@@ -39,7 +40,7 @@ public class TeamMapper {
             team.setCompany(companyRepository.findById(teamDTO.getCompanyId()).orElseThrow(
                     () -> new ResourceNotFoundException("Company not found with id " + teamDTO.getCompanyId())));
         if ( teamDTO.getMemberships() != null && !teamDTO.getMemberships().isEmpty() )
-            team.setMemberships(teamDTO.getMemberships().stream().map(MembershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
+            team.setMemberships(teamDTO.getMemberships().stream().map(membershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
         return team;
     }
 }

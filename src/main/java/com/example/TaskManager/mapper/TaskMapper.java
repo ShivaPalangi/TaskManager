@@ -5,19 +5,20 @@ import com.example.TaskManager.entity.Task;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.MembershipRepository;
 import com.example.TaskManager.repository.TaskCategoryRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class TaskMapper {
-    private static TaskCategoryRepository taskCategoryRepository;
-    private static MembershipRepository membershipRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final MembershipRepository membershipRepository;
+    private final TaskWorkTimeMapper taskWorkTimeMapper;
 
-    public static TaskDTO mapToTaskDTO(Task task){
+    public TaskDTO mapToTaskDTO(Task task){
         if (task == null) return null;
 
         TaskDTO taskDTO = new TaskDTO();
@@ -42,11 +43,11 @@ public class TaskMapper {
         if ( task.getCreatedBy() != null )
             taskDTO.setCreatorId(task.getCreatedBy().getId() );
         if ( task.getWorkTimes() != null && !task.getWorkTimes().isEmpty() )
-            taskDTO.setWorkTimes(task.getWorkTimes().stream().map(TaskWorkTimeMapper::mapToTaskWorkTimeDTO).collect(Collectors.toList()));
+            taskDTO.setWorkTimes(task.getWorkTimes().stream().map(taskWorkTimeMapper::mapToTaskWorkTimeDTO).collect(Collectors.toList()));
         return taskDTO;
     }
 
-    public static Task mapToTaskEntity(TaskDTO taskDTO){
+    public Task mapToTaskEntity(TaskDTO taskDTO){
         if (taskDTO == null) return null;
 
         Task task = new Task();
@@ -73,7 +74,7 @@ public class TaskMapper {
             task.setCreatedBy(membershipRepository.findById(taskDTO.getCreatorId()).orElseThrow(
                     () -> new ResourceNotFoundException("User not found with id " + taskDTO.getCreatorId())));
         if ( taskDTO.getWorkTimes() != null && !taskDTO.getWorkTimes().isEmpty() )
-            task.setWorkTimes(taskDTO.getWorkTimes().stream().map(TaskWorkTimeMapper::mapToTaskWorkTimeEntity).collect(Collectors.toList()));
+            task.setWorkTimes(taskDTO.getWorkTimes().stream().map(taskWorkTimeMapper::mapToTaskWorkTimeEntity).collect(Collectors.toList()));
         return task;
     }
 }

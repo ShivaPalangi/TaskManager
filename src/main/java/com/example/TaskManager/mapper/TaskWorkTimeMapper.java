@@ -4,17 +4,17 @@ import com.example.TaskManager.dto.TaskWorkTimeDTO;
 import com.example.TaskManager.entity.TaskWorkTime;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.TaskRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class TaskWorkTimeMapper {
-    private static TaskRepository taskRepository;
+    private final TaskRepository taskRepository;
 
-    public static TaskWorkTimeDTO mapToTaskWorkTimeDTO(TaskWorkTime taskWorkTime){
+    public TaskWorkTimeDTO mapToTaskWorkTimeDTO(TaskWorkTime taskWorkTime){
         if (taskWorkTime == null) return null;
 
         TaskWorkTimeDTO taskWorkTimeDTO = new TaskWorkTimeDTO();
@@ -30,7 +30,7 @@ public class TaskWorkTimeMapper {
     }
 
 
-    public static TaskWorkTime mapToTaskWorkTimeEntity(TaskWorkTimeDTO taskWorkTimeDTO){
+    public TaskWorkTime mapToTaskWorkTimeEntity(TaskWorkTimeDTO taskWorkTimeDTO){
         if (taskWorkTimeDTO == null) return null;
 
         TaskWorkTime taskWorkTime = new TaskWorkTime();

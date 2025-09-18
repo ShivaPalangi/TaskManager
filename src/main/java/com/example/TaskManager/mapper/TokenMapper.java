@@ -4,15 +4,15 @@ import com.example.TaskManager.dto.TokenDTO;
 import com.example.TaskManager.entity.Token;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.repository.UserRepository;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class TokenMapper {
-    private static UserRepository userRepository;
+    private final UserRepository userRepository;
 
-    public static TokenDTO mapToTokenDTO(Token token) {
+    public TokenDTO mapToTokenDTO(Token token) {
         if (token == null) return null;
 
         TokenDTO tokenDTO = new TokenDTO();
@@ -26,7 +26,7 @@ public class TokenMapper {
         return tokenDTO;
     }
 
-    public static Token mapToTokenEntity(TokenDTO tokenDTO) {
+    public Token mapToTokenEntity(TokenDTO tokenDTO) {
         if (tokenDTO == null) return null;
 
         Token token = new Token();

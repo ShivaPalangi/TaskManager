@@ -2,17 +2,21 @@ package com.example.TaskManager.mapper;
 
 import com.example.TaskManager.dto.UserDTO;
 import com.example.TaskManager.entity.User;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component
 public class UserMapper {
+    private final CompanyMapper companyMapper;
+    private final TokenMapper tokenMapper;
+    private final MembershipMapper membershipMapper;
+    private final TaskCategoryMapper taskCategoryMapper;
 
-    public static UserDTO mapToEmployeeDTO(User user){
+    public UserDTO mapToEmployeeDTO(User user){
         if (user == null) return null;
 
         UserDTO userDTO = new UserDTO();
@@ -26,18 +30,18 @@ public class UserMapper {
         if ( user.getDateOfBirth() != null )
             userDTO.setDateOfBirth(user.getDateOfBirth().format(formatter));
         if ( user.getCompanies() != null && !user.getCompanies().isEmpty() )
-            userDTO.setCompanies(user.getCompanies().stream().map(CompanyMapper::mapToCompanyDTO).collect(Collectors.toList()));
+            userDTO.setCompanies(user.getCompanies().stream().map(companyMapper::mapToCompanyDTO).collect(Collectors.toList()));
         if ( user.getTokens() != null && !user.getTokens().isEmpty() )
-            userDTO.setTokens(user.getTokens().stream().map(TokenMapper::mapToTokenDTO).collect(Collectors.toList()));
+            userDTO.setTokens(user.getTokens().stream().map(tokenMapper::mapToTokenDTO).collect(Collectors.toList()));
         if ( user.getMemberships() != null && !user.getMemberships().isEmpty() )
-            userDTO.setMemberships(user.getMemberships().stream().map(MembershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
+            userDTO.setMemberships(user.getMemberships().stream().map(membershipMapper::mapToMembershipDTO).collect(Collectors.toList()));
         if ( user.getTaskCategories() != null && !user.getTaskCategories().isEmpty() )
-            userDTO.setTaskCategories(user.getTaskCategories().stream().map(TaskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList()));
+            userDTO.setTaskCategories(user.getTaskCategories().stream().map(taskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList()));
         return userDTO;
     }
 
 
-    public static User mapToEmployeeEntity(UserDTO userDTO){
+    public User mapToEmployeeEntity(UserDTO userDTO){
         if (userDTO == null) return null;
 
         User user = new User();
@@ -49,13 +53,13 @@ public class UserMapper {
         user.setRole(userDTO.getRole());
         user.setDateOfBirth(LocalDate.parse(userDTO.getDateOfBirth()));
         if ( userDTO.getCompanies() != null && !userDTO.getCompanies().isEmpty() )
-            user.setCompanies(userDTO.getCompanies().stream().map(CompanyMapper::mapToCompanyEntity).collect(Collectors.toList()));
+            user.setCompanies(userDTO.getCompanies().stream().map(companyMapper::mapToCompanyEntity).collect(Collectors.toList()));
         if ( userDTO.getTokens() != null && !userDTO.getTokens().isEmpty() )
-            user.setTokens(userDTO.getTokens().stream().map(TokenMapper::mapToTokenEntity).collect(Collectors.toList()));
+            user.setTokens(userDTO.getTokens().stream().map(tokenMapper::mapToTokenEntity).collect(Collectors.toList()));
         if ( userDTO.getMemberships() != null && !userDTO.getMemberships().isEmpty() )
-            user.setMemberships(userDTO.getMemberships().stream().map(MembershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
+            user.setMemberships(userDTO.getMemberships().stream().map(membershipMapper::mapToMembershipEntity).collect(Collectors.toList()));
         if ( userDTO.getTaskCategories() != null && !userDTO.getTaskCategories().isEmpty() )
-            user.setTaskCategories(userDTO.getTaskCategories().stream().map(TaskCategoryMapper::mapToTaskCategoryEntity).collect(Collectors.toList()));
+            user.setTaskCategories(userDTO.getTaskCategories().stream().map(taskCategoryMapper::mapToTaskCategoryEntity).collect(Collectors.toList()));
         return user;
     }
 }
