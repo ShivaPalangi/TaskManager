@@ -6,11 +6,9 @@ import com.example.TaskManager.entity.User;
 import com.example.TaskManager.mapper.UserMapper;
 import com.example.TaskManager.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.security.Principal;
 import java.time.LocalDate;
 
 @Service
@@ -19,6 +17,7 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
 
     public UserDTO changePassword(ChangePasswordRequest request, User user) {
@@ -31,14 +30,14 @@ public class UserService {
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
-        return UserMapper.mapToEmployeeDTO(user);
+        return userMapper.mapToEmployeeDTO(user);
     }
 
 
     public UserDTO updateUser(UserDTO userDTO, User user) {
         updateUserEntityFromDTO(user, userDTO);
         User savedUser = userRepository.save(user);
-        return UserMapper.mapToEmployeeDTO(savedUser);
+        return userMapper.mapToEmployeeDTO(savedUser);
     }
 
     private void updateUserEntityFromDTO(User user, UserDTO userDTO) {
