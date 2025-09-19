@@ -1,28 +1,32 @@
 package com.example.TaskManager.controller;
 
 import com.example.TaskManager.dto.MembershipDTO;
+import com.example.TaskManager.dto.MembershipRequest;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.service.MembershipService;
 import com.example.TaskManager.service.PermissionService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("api/v1/company/{companyId}/team/{teamId}/members")
+@RequestMapping("api/v1/companies/{companyId}/teams/{teamId}/members")
 @RequiredArgsConstructor
 public class MembershipController {
     private final PermissionService permissionService;
     private final MembershipService membershipService;
 
     @PostMapping("{memberId}/add-admin")
-    public ResponseEntity<MembershipDTO> addTeamAdmin(
+    public ResponseEntity<?> addTeamAdmin(
             @Min(1) @PathVariable("companyId") Long companyId,
             @Min(1) @PathVariable("teamId") Long teamId,
             @Min(1) @PathVariable("memberId") Long memberId,
@@ -31,39 +35,68 @@ public class MembershipController {
         if ( !permissionService.canManageCompany(user, companyId))
             throw new AccessDeniedException("You are not the owner of this company");
 
-        MembershipDTO newMembership = membershipService.addAdmin(teamId, memberId);
-        return new ResponseEntity<>(newMembership,HttpStatus.OK);
+        Map<String, Object> newMembership = membershipService.addAdmin(teamId, memberId);
+        return ResponseEntity.ok(newMembership);
     }
+
+
 
 
     @PostMapping
-    public ResponseEntity<MembershipDTO> addTeamMember(
+    public ResponseEntity<?> addTeamMember(
             @Min(1) @PathVariable("companyId") Long companyId,
             @Min(1) @PathVariable("teamId") Long teamId,
-            @RequestBody String emailAddress,
+            @Valid @RequestBody MembershipRequest membershipRequest,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if ( !permissionService.canManageTeam(user, teamId))
+        if ( !permissionService.canManageTeam(user, teamId, companyId))
             throw new AccessDeniedException("You are not allowed to manage this team");
 
-        MembershipDTO newMembership = membershipService.addMember(teamId, emailAddress);
-        return new ResponseEntity<>(newMembership,HttpStatus.CREATED);
+        membershipRequest.setTeamId(teamId);
+        Map<String, Object> newMembership = membershipService.addMember(membershipRequest);
+
+        if (newMembership.get("message").equals("Membership created successfully")) {
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentRequest()
+                    .path("/{id}")
+                    .buildAndExpand( ((MembershipDTO) newMembership.get("data")).getId())
+                    .toUri();
+
+            return ResponseEntity.created(location).body(newMembership);
+        }
+        return ResponseEntity.ok(newMembership);
     }
 
 
+
+
     @DeleteMapping("{memberId}")
-    public ResponseEntity<String> deleteTeamMember(
+    public ResponseEntity<?> deleteTeamMember(
             @Min(1) @PathVariable("companyId") Long companyId,
             @Min(1) @PathVariable("teamId") Long teamId,
             @Min(1) @PathVariable("memberId") Long memberId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if (permissionService.canManageTeam(user, teamId))
+        if ( !permissionService.canManageTeam(user, teamId, companyId))
             throw new AccessDeniedException("You can't delete any member of this team");
 
-        String response = membershipService.deleteMember(teamId, memberId, user);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        String result = membershipService.deleteMember(teamId, memberId, user);
+
+        String redirectUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("api/v1/company/{companyId}/team/{teamId}/members")
+                .buildAndExpand(companyId, teamId)
+                .toUriString();
+
+        Map<String, Object> response = Map.of(
+                "redirect", true,
+                "redirectUrl", redirectUrl,
+                "message", result
+        );
+        return ResponseEntity.ok(response);
     }
+
+
 
 
     @GetMapping("{memberId}")
@@ -74,12 +107,15 @@ public class MembershipController {
             @AuthenticationPrincipal User user
     ) throws AccessDeniedException {
 
-        if (permissionService.isMemberOfTeam(user, teamId, companyId))
+        if ( !permissionService.isMemberOfTeam(user, teamId, companyId))
             throw new AccessDeniedException("You are not the member of this team");
 
         MembershipDTO membershipDTO = membershipService.getMembership(teamId, memberId, companyId);
-        return new ResponseEntity<>(membershipDTO, HttpStatus.OK);
+        return ResponseEntity.ok(membershipDTO);
     }
+
+
+
 
     @GetMapping("search")
     public ResponseEntity<List<MembershipDTO>> searchTeamMembers(
@@ -92,8 +128,11 @@ public class MembershipController {
             throw new AccessDeniedException("You are not the member of this team");
 
         List<MembershipDTO> members = membershipService.searchTeamMembers(teamId, title);
-        return new ResponseEntity<>(members, HttpStatus.OK);
+        return ResponseEntity.ok(members);
     }
+
+
+
 
     @GetMapping
     public ResponseEntity<List<MembershipDTO>> getTeamMembers(
@@ -105,7 +144,6 @@ public class MembershipController {
             throw new AccessDeniedException("You are not the member of this team");
 
         List<MembershipDTO> members = membershipService.getTeamMembers(teamId);
-        return new ResponseEntity<>(members, HttpStatus.OK);
-
+        return ResponseEntity.ok(members);
     }
 }
