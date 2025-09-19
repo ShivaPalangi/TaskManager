@@ -17,18 +17,13 @@ public interface CompanyRepository extends JpaRepository<Company, Long> {
             JOIN c.teams t
             JOIN t.memberships m
             WHERE m.employee = :user
-            """)
-    List<Company> findCompaniesByUser(@Param("user") User user);
-
-
-    @Query("""
-            SELECT DISTINCT c FROM Company c
-            JOIN c.teams t
-            JOIN t.memberships m
-            WHERE m.employee = :user
             AND LOWER(c.name) LIKE LOWER(CONCAT('%', :searchTerm, '%'))
             """)
     List<Company> findCompaniesByUserAndNameContaining(
             @Param("user") User user,
             @Param("searchTerm") String searchTerm);
+
+    List<Company> findAllByOwner(User owner);
+    List<Company> findAllByOwnerAndNameContaining(User owner, String searchTerm);
+    boolean existsByIdAndOwner(Long id, User owner);
 }
