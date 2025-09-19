@@ -8,6 +8,8 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.nio.file.AccessDeniedException;
 import java.time.OffsetDateTime;     // برای زمان خطا
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +35,29 @@ public class GlobalExceptionHandler {
         pd.setProperty("timestamp", OffsetDateTime.now());
         return pd;
     }
+
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDeniedException(AccessDeniedException exception, HttpServletRequest request){
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, exception.getMessage());
+        pd.setTitle("Bad Request");
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("timestamp", OffsetDateTime.now());
+        return pd;
+    }
+
+
+
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnknownRequests(Exception exception, HttpServletRequest request) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Unknown Request");
+        pd.setTitle("Unknown Request");
+        pd.setProperty("path", request.getRequestURI());
+        pd.setProperty("timestamp", OffsetDateTime.now());
+        return pd;
+    }
+
+
 
     // @RequestBody
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -71,16 +96,4 @@ public class GlobalExceptionHandler {
         pd.setProperty("errors", errors);
         return pd;
     }
-
-
-
-    @ExceptionHandler(Exception.class)
-    public ProblemDetail handleHttpMessageNotReadable(Exception ex, HttpServletRequest request) {
-        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "UnknownRequest");
-        pd.setTitle("Bad Request");
-        pd.setProperty("path", request.getRequestURI());
-        pd.setProperty("timestamp", OffsetDateTime.now());
-        return pd;
-    }
-
 }
