@@ -23,6 +23,8 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
     Optional<Membership> findByEmployeeAndTeamId(User employee, Long team);
 
+    Optional<Membership> findByEmployeeAndTeamIdAndTeamCompanyId(User employee, Long teamId, Long companyId);
+
     List<Membership> findAllByTeamId(Long teamId);
 
     @Query("""
@@ -35,4 +37,8 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
     List<Membership> findByTeamIdAndEmployeeNameContaining(
             @Param("teamId") Long teamId,
             @Param("searchTerm") String searchTerm);
+
+    Optional<Membership> findByEmployeeIdAndTeamId(Long employeeId, Long teamId);
+    boolean existsByEmployeeIdAndTeamId(Long employeeId, Long teamId);
+    List<Membership> findAllByEmployee(User employee);
 }

@@ -10,6 +10,6 @@ import java.util.Optional;
 @Repository
 public interface TaskWorkTimeRepository extends JpaRepository<TaskWorkTime, Long> {
     boolean existsByTaskIdAndEndTimeIsNull(Long taskId);
-    Optional<TaskWorkTime> findFirstByTaskIdAndEndTimeIsNullOrderByStartTimeDesc(Long taskId);
-    List<TaskWorkTime> findAllByTaskIdOrderByStartTimeDesc(Long taskId);
+    Optional<TaskWorkTime> findByTaskIdAndEndTimeIsNull(Long taskId);
+    List<TaskWorkTime> findAllByTaskId(Long taskId);
 }
