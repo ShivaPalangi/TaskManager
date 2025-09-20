@@ -91,7 +91,7 @@ public class CompanyController {
         companyService.deleteCompany(id);
 
         String redirectUrl = ServletUriComponentsBuilder
-                .fromCurrentContextPath() // base url
+                .fromCurrentContextPath()
                 .path("/api/v1/companies")
                 .build()
                 .toUriString();

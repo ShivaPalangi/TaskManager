@@ -1,6 +1,8 @@
 package com.example.TaskManager.controller;
 
 import com.example.TaskManager.dto.TaskDTO;
+import com.example.TaskManager.dto.TaskRequest;
+import com.example.TaskManager.dto.TaskRequestByResponsible;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.service.PermissionService;
 import com.example.TaskManager.service.TaskService;
@@ -8,14 +10,16 @@ import com.example.TaskManager.validation.ValidationGroups;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/tasks")
@@ -24,57 +28,101 @@ public class TaskController {
     private final TaskService taskService;
     private final PermissionService permissionService;
 
-    @PostMapping("add-task")
+    @PostMapping("/draft_tasks")
     public ResponseEntity<?> addTask(
-            @Validated(ValidationGroups.Create.class) @RequestBody TaskDTO taskDTO,
-            @RequestParam Long teamId,
+            @Validated(ValidationGroups.Create.class) @RequestBody TaskRequest taskRequest,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if ( !permissionService.canManageTeam(user, teamId))
+        if ( !permissionService.canManageTeam(user, taskRequest.getTeamId()))
             throw new AccessDeniedException("You can't assign task to any membership");
-        var response = taskService.addTask(taskDTO, teamId, user);
-        return new ResponseEntity<>(response, HttpStatus.CREATED);
+
+        TaskDTO response = taskService.addTask(taskRequest, user);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/draft_tasks")
+                .build()
+                .toUri();
+
+        return ResponseEntity.created(location).body(
+                Map.of("message", "Task added successfully!", "data", response));
     }
 
 
-    @PatchMapping("{id}")
-    public ResponseEntity<TaskDTO> updateTask(
+
+    @PatchMapping("/draft_tasks/{id}")
+    public ResponseEntity<?> updateDraftTask(
             @PathVariable @Min(1) Long id,
-            @Valid @RequestBody TaskDTO taskDTO,
+            @Valid @RequestBody TaskRequest taskRequest,
             @AuthenticationPrincipal User user
     ) throws AccessDeniedException {
 
         if ( !permissionService.canManageTask(user, id))
             throw new AccessDeniedException("You are not allowed to update this task");
-        TaskDTO updatedTask = taskService.updateTask(id, taskDTO);
-        return new ResponseEntity<>(updatedTask, HttpStatus.OK);
+
+        TaskDTO updatedTask = taskService.updateDraftTask(id, taskRequest);
+        return ResponseEntity.ok(
+                Map.of("message", "Task added successfully!", "data", updatedTask));
     }
 
 
 
-    @DeleteMapping("{id}")
+
+    @PatchMapping("{taskId}")
+    public ResponseEntity<?> updateTask(
+            @PathVariable("taskId") @Min(1) Long taskId,
+            @Valid @RequestBody TaskRequestByResponsible taskRequest,
+            @AuthenticationPrincipal User user) throws AccessDeniedException {
+
+        if ( !permissionService.isResponsible(taskId, user))
+            throw new AccessDeniedException("You are not the responsible of this task!");
+
+        Map<String, Object> response =  taskService.updateTask(taskId, taskRequest, user);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+    @PatchMapping("/assign-tasks")
+    public ResponseEntity<String> assignDraftTasks(@AuthenticationPrincipal User user) {
+        String response = taskService.assignDraftTasks(user);
+        return ResponseEntity.ok(response);
+    }
+
+
+
+
+
+    @GetMapping("/draft_tasks")
+    public ResponseEntity<List<TaskDTO>> getDraftTasks(@AuthenticationPrincipal User user) {
+        List<TaskDTO> draftTasks = taskService.getDraftTasks(user);
+        return ResponseEntity.ok(draftTasks);
+    }
+
+    @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteTask(
             @PathVariable @Min(1) Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.canManageTask(user, id))
             throw new AccessDeniedException("You are not allowed to delete this task");
-        taskService.deleteTask(id);
-        return new ResponseEntity<>("Task has been deleted", HttpStatus.OK);
+        String response = taskService.deleteTask(id);
+        return ResponseEntity.ok(response);
     }
 
 
 
 
-    @PatchMapping("{id}/cancel")
+    @PatchMapping("/{id}/cancel")
     public ResponseEntity<String> cancelTask(
-            @PathVariable Long taskId,
+            @PathVariable Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if ( !permissionService.canManageTask(user, taskId))
+        if ( !permissionService.canManageTask(user, id))
             throw new AccessDeniedException("You are not allowed to delete this task");
-        taskService.cancelTask(taskId);
-        return new ResponseEntity<>("Task has been canceled", HttpStatus.OK);
+        String response = taskService.cancelTask(id);
+        return ResponseEntity.ok(response);
     }
 
 
@@ -82,58 +130,45 @@ public class TaskController {
     @GetMapping
     public ResponseEntity<List<TaskDTO>> getAllTasks(@AuthenticationPrincipal User user) {
         List<TaskDTO> tasks = taskService.getAllTasks(user);
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+        return ResponseEntity.ok(tasks);
     }
 
-    @GetMapping("tasks-history")
+    @GetMapping("/tasks-history")
     public ResponseEntity<List<TaskDTO>> getAllTasksHistory(@AuthenticationPrincipal User user) {
         List<TaskDTO> taskDTOS = taskService.getAllTasksHistory(user);
-        return new ResponseEntity<>(taskDTOS, HttpStatus.OK);
+        return ResponseEntity.ok(taskDTOS);
     }
 
 
-    @PatchMapping("assign-tasks")
-    public ResponseEntity<List<TaskDTO>> assignTasks(@AuthenticationPrincipal User user) {
-        List<TaskDTO> assignedTasks = taskService.assignTasks(user);
-        return new ResponseEntity<>(assignedTasks, HttpStatus.OK);
-    }
-
-
-    @GetMapping("draft_tasks")
-    public ResponseEntity<List<TaskDTO>> getDraftTasks(@AuthenticationPrincipal User user) {
-        List<TaskDTO> draftTasks = taskService.getDraftTasks(user);
-        return new ResponseEntity<>(draftTasks, HttpStatus.OK);
-    }
-
-
-    @PatchMapping("{id}/complete")
-    public ResponseEntity<TaskDTO> completeTask(@AuthenticationPrincipal User user, @PathVariable Long taskId) throws AccessDeniedException {
-        if ( !permissionService.isResponsible(taskId, user))
+    @PatchMapping("/{id}/complete")
+    public ResponseEntity<?> completeTask(@AuthenticationPrincipal User user, @PathVariable Long id) throws AccessDeniedException {
+        if ( !permissionService.isResponsible(id, user))
             throw new AccessDeniedException("You are not the responsible of this task");
-        TaskDTO completedTask = taskService.completeTask(taskId, user);
-        return new ResponseEntity<>(completedTask, HttpStatus.OK);
+        Map<String, Object> response = taskService.completeTask(id, user);
+        return ResponseEntity.ok(response);
     }
 
 
-    @GetMapping("sort-by-priority")
+    @GetMapping("/sort-by-priority")
     public ResponseEntity<List<TaskDTO>> sortTasksByPriority(@AuthenticationPrincipal User user) {
         List<TaskDTO> tasks = taskService.sortTasksByPriority(user);
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+        return ResponseEntity.ok(tasks);
     }
 
 
-    @GetMapping("sort-by-dead-time")
+    @GetMapping("/sort-by-dead-time")
     public ResponseEntity<List<TaskDTO>> sortTasksByDeadTime(@AuthenticationPrincipal User user) {
         List<TaskDTO> tasks = taskService.sortTasksByDeadTime(user);
-        return new ResponseEntity<>(tasks, HttpStatus.OK);
+        return ResponseEntity.ok(tasks);
     }
 
 
 
-    @GetMapping("{taskId}")
+    @GetMapping("/{taskId}")
     public ResponseEntity<TaskDTO> getTaskById(@AuthenticationPrincipal User user, @PathVariable Long taskId) {
+
         TaskDTO taskDTO = taskService.getTaskById(taskId, user);
-        return new ResponseEntity<>(taskDTO, HttpStatus.OK);
+        return  ResponseEntity.ok(taskDTO);
     }
 
 

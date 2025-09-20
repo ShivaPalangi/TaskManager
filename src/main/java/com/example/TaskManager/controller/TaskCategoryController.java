@@ -7,14 +7,16 @@ import com.example.TaskManager.service.TaskCategoryService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("api/v1/categories")
@@ -23,16 +25,24 @@ public class TaskCategoryController {
     private final TaskCategoryService taskCategoryService;
     private final PermissionService permissionService;
 
-    @PostMapping("primary-categories")
+    @PostMapping("/primary-categories")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:create')) or (hasRole('MANAGER') and hasAuthority('management:create'))")
     public ResponseEntity<?> addPrimaryTaskCategory(
             @Valid @RequestBody TaskCategoryDTO taskCategoryDTO,
             @AuthenticationPrincipal User user) {
 
-        TaskCategoryDTO newTaskCategoryDTO = taskCategoryService.addPrimaryTaskCategory(taskCategoryDTO, user);
-        if  (newTaskCategoryDTO == null)
-            return new ResponseEntity<>("Task category is already exist",HttpStatus.OK);
-        return new ResponseEntity<>(newTaskCategoryDTO, HttpStatus.CREATED);
+        TaskCategoryDTO newCategory = taskCategoryService.addPrimaryTaskCategory(taskCategoryDTO, user);
+        if  (newCategory == null)
+            return ResponseEntity.ok("Task category is already exist");
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(newCategory.getId())
+                .toUri();
+
+        return ResponseEntity.created(location).body(
+                Map.of("message", "Task category created successfully", "data",  newCategory));
     }
 
 
@@ -41,20 +51,27 @@ public class TaskCategoryController {
     public ResponseEntity<?> addTaskCategory(
             @Valid @RequestBody TaskCategoryDTO taskCategoryDTO,
             @AuthenticationPrincipal User user) {
-        TaskCategoryDTO newTaskCategoryDTO = taskCategoryService.addTaskCategory(taskCategoryDTO, user);
-        if  (newTaskCategoryDTO == null)
-            return new ResponseEntity<>("Task category is already exist",HttpStatus.OK);
-        return new ResponseEntity<>(newTaskCategoryDTO, HttpStatus.CREATED);
+        TaskCategoryDTO newCategory = taskCategoryService.addTaskCategory(taskCategoryDTO, user);
+        if  (newCategory == null)
+            return ResponseEntity.ok("Task category is already exist");
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(newCategory.getId())
+                .toUri();
+        return ResponseEntity.created(location).body(
+                Map.of("message", "Task category created successfully", "data",  newCategory));
     }
 
 
 
 
-    @GetMapping("primary-categories")
+    @GetMapping("/primary-categories")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:read')) or (hasRole('MANAGER') and hasAuthority('management:read'))")
     public ResponseEntity<List<TaskCategoryDTO>> getAllPrimaryTaskCategories() {
         List<TaskCategoryDTO> categoryDTOList = taskCategoryService.getAllPrimaryTaskCategories();
-        return new ResponseEntity<>(categoryDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(categoryDTOList);
     }
 
 
@@ -62,32 +79,32 @@ public class TaskCategoryController {
     @GetMapping
     public ResponseEntity<List<TaskCategoryDTO>> getAllUserTaskCategories(@AuthenticationPrincipal User user) {
         List<TaskCategoryDTO> categoryDTOList = taskCategoryService.getAllUserTaskCategories(user);
-        return new ResponseEntity<>(categoryDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(categoryDTOList);
     }
 
 
 
-    @GetMapping("primary-categories/search")
+    @GetMapping("/primary-categories/search")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:read')) or (hasRole('MANAGER') and hasAuthority('management:read'))")
     public ResponseEntity<List<TaskCategoryDTO>> findPrimaryCategoryByTitle(@RequestParam String title) {
         List<TaskCategoryDTO> taskCategoryDTOList = taskCategoryService.findPrimaryCategoryByTitle(title);
-        return new ResponseEntity<>(taskCategoryDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(taskCategoryDTOList);
     }
 
 
 
-    @GetMapping("search-categories")
+    @GetMapping("/search")
     public ResponseEntity<List<TaskCategoryDTO>> findCategoryByTitle(
             @RequestParam String title,
             @AuthenticationPrincipal User user) {
 
         List<TaskCategoryDTO> taskCategoryDTOList = taskCategoryService.findCategoryByTitle(title, user);
-        return new ResponseEntity<>(taskCategoryDTOList, HttpStatus.OK);
+        return ResponseEntity.ok(taskCategoryDTOList);
     }
 
 
 
-    @GetMapping("{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<TaskCategoryDTO> getTaskCategoryById(
             @PathVariable @Min(1) Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
@@ -96,12 +113,12 @@ public class TaskCategoryController {
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
         TaskCategoryDTO categoryDTO = taskCategoryService.getTaskCategoryById(id, user);
-        return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
+        return ResponseEntity.ok(categoryDTO);
     }
 
 
 
-    @GetMapping("primary-categories/{id}")
+    @GetMapping("/primary-categories/{id}")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:read')) or (hasRole('MANAGER') and hasAuthority('management:read'))")
     public ResponseEntity<TaskCategoryDTO> getPrimaryTaskCategoryById(@PathVariable @Min(1) Long id) throws AccessDeniedException {
 
@@ -109,14 +126,14 @@ public class TaskCategoryController {
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
         TaskCategoryDTO categoryDTO = taskCategoryService.getPrimaryTaskCategoryById(id);
-        return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
+        return ResponseEntity.ok(categoryDTO);
     }
 
 
 
-    @PatchMapping("primary-categories/{id}")
+    @PatchMapping("/primary-categories/{id}")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:update')) or (hasRole('MANAGER') and hasAuthority('management:update'))")
-    public ResponseEntity<TaskCategoryDTO> updatePrimaryTaskCategory(
+    public ResponseEntity<?> updatePrimaryTaskCategory(
             @Min(1) @PathVariable Long id,
             @Valid @RequestBody TaskCategoryDTO taskCategoryDTO) throws AccessDeniedException {
 
@@ -124,26 +141,39 @@ public class TaskCategoryController {
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
         TaskCategoryDTO categoryDTO = taskCategoryService.updatePrimaryTaskCategory(id, taskCategoryDTO);
-        return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
+        return ResponseEntity.ok(
+                Map.of("message", "Task category updated successfully", "data", categoryDTO));
     }
 
 
 
-    @DeleteMapping("primary-categories/{id}")
+    @DeleteMapping("/primary-categories/{id}")
     @PreAuthorize("(hasRole('ADMIN') and hasAuthority('admin:delete')) or (hasRole('MANAGER') and hasAuthority('management:delete'))")
-    public ResponseEntity<String> deletePrimaryTaskCategory(@Min(1) @PathVariable Long id) throws AccessDeniedException {
+    public ResponseEntity<?> deletePrimaryTaskCategory(@Min(1) @PathVariable Long id) throws AccessDeniedException {
 
         if ( !permissionService.canManagePrimaryTaskDetail(id))
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
-        String response = taskCategoryService.deleteTaskCategory(id);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        taskCategoryService.deleteTaskCategory(id);
+
+        String redirectUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("api/v1/categories/primary-categories")
+                .build()
+                .toUriString();
+
+        Map<String, Object> response = Map.of(
+                "redirect", true,
+                "redirectUrl", redirectUrl,
+                "message", "Task category with id %d deleted successfully".formatted(id)
+        );
+        return ResponseEntity.ok(response);
     }
 
 
 
-    @PatchMapping("{id}")
-    public ResponseEntity<TaskCategoryDTO> updateTaskCategory(
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateTaskCategory(
             @Min(1) @PathVariable Long id,
             @Valid @RequestBody TaskCategoryDTO taskCategoryDTO,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
@@ -151,21 +181,34 @@ public class TaskCategoryController {
         if ( !permissionService.canManageTaskCategory(id, user))
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
-        TaskCategoryDTO categoryDTO = taskCategoryService.updateTaskCategory(id, taskCategoryDTO);
-        return new ResponseEntity<>(categoryDTO, HttpStatus.OK);
+        TaskCategoryDTO categoryDTO = taskCategoryService.updateTaskCategory(id, taskCategoryDTO, user);
+        return ResponseEntity.ok(
+                Map.of("message", "Task category updated successfully", "data", categoryDTO));
     }
 
 
 
-    @DeleteMapping("{id}")
-    public ResponseEntity<String> deleteTaskCategory(
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTaskCategory(
             @Min(1) @PathVariable Long id,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.canManageTaskCategory(id, user))
             throw new AccessDeniedException("Task category with id %d not found!".formatted(id));
 
-        String response = taskCategoryService.deleteTaskCategory(id);
-        return new ResponseEntity<>(response, HttpStatus.OK);
+        taskCategoryService.deleteTaskCategory(id);
+
+        String redirectUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .path("api/v1/categories")
+                .build()
+                .toUriString();
+
+        Map<String, Object> response = Map.of(
+                "redirect", true,
+                "redirectUrl", redirectUrl,
+                "message", "Task category with id %d deleted successfully".formatted(id)
+        );
+        return ResponseEntity.ok(response);
     }
 }

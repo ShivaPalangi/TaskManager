@@ -5,72 +5,98 @@ import com.example.TaskManager.entity.User;
 import com.example.TaskManager.service.PermissionService;
 import com.example.TaskManager.service.TaskWorkTimeService;
 import com.example.TaskManager.validation.ValidationGroups;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("api/v1/task-work-time")
+@RequestMapping("api/v1/tasks/{taskId}/work-times")
 @RequiredArgsConstructor
 public class TaskWorkTimeController {
     private final TaskWorkTimeService taskWorkTimeService;
     private final PermissionService permissionService;
 
     @PostMapping
-    public ResponseEntity<TaskWorkTimeDTO> startWorkTime(
-            @RequestBody @Validated(ValidationGroups.Create.class) TaskWorkTimeDTO taskWorkTimeDTO,
+    public ResponseEntity<?> startWorkTime(
+            @PathVariable("taskId") @Min(1) Long taskId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
-        if ( !permissionService.isResponsible(taskWorkTimeDTO.getTaskId() ,user))
+        if ( !permissionService.isResponsible(taskId ,user))
             throw new AccessDeniedException("You are not responsible of this task");
-        TaskWorkTimeDTO workTime = taskWorkTimeService.startWorkTime(taskWorkTimeDTO);
-        return new ResponseEntity<>(workTime, HttpStatus.CREATED);
+        Map<String, Object> response = taskWorkTimeService.startWorkTime(taskId);
+
+        if (response.containsKey("data")) {
+            URI location = ServletUriComponentsBuilder
+                    .fromCurrentContextPath()
+                    .path("/{workTimeId}")
+                    .buildAndExpand( ((TaskWorkTimeDTO) response.get("data")).getId())
+                    .toUri();
+
+            return ResponseEntity.created(location).body(response);}
+        else
+            return ResponseEntity.ok(response);
     }
 
 
 
-    @PatchMapping("/{TaskId}/end")
+    @PatchMapping("/end")
     public ResponseEntity<?> endTaskWork(
-            @PathVariable("TaskId") Long taskId,
+            @PathVariable("taskId") Long taskId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.isResponsible(taskId ,user))
             throw new AccessDeniedException("You are not responsible of this task");
 
         TaskWorkTimeDTO taskWorkTime = taskWorkTimeService.endActiveTaskWork(taskId);
-        return new ResponseEntity<>(taskWorkTime, HttpStatus.OK);
+
+        String redirectUrl = ServletUriComponentsBuilder
+                .fromCurrentContextPath()
+                .build()
+                .toUriString();
+
+        Map<String, Object> response = Map.of(
+                "redirect", true,
+                "redirectUrl", redirectUrl,
+                "message", "Work time has been ended successfully",
+                "data", taskWorkTime
+        );
+        return ResponseEntity.ok(response);
     }
 
 
 
-    @GetMapping("/task/{taskId}")
+    @GetMapping
     public ResponseEntity<List<TaskWorkTimeDTO>> getTaskWorkHistory(
-            @PathVariable("TaskId") Long taskId,
+            @PathVariable("taskId") Long taskId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
         if ( !permissionService.canGetTaskDetail(user, taskId))
             throw new AccessDeniedException("You are not allowed to access this task");
 
         List<TaskWorkTimeDTO> workHistory = taskWorkTimeService.getTaskWorkHistory(taskId);
-        return new ResponseEntity<>(workHistory, HttpStatus.OK);
+        return ResponseEntity.ok(workHistory);
     }
 
 
-    @GetMapping("/task/{taskId}/active")
+    @GetMapping("/active")
     public ResponseEntity<TaskWorkTimeDTO> getActiveWorkSession(
-            @PathVariable("TaskId") Long taskId,
+            @PathVariable("taskId") Long taskId,
             @AuthenticationPrincipal User user) throws AccessDeniedException {
 
         if ( !permissionService.canGetTaskDetail(user, taskId))
             throw new AccessDeniedException("You are not allowed to access this task");
 
         TaskWorkTimeDTO taskWorkTime = taskWorkTimeService.getActiveWorkSession(taskId);
-        return new ResponseEntity<>(taskWorkTime, HttpStatus.OK);
+        return ResponseEntity.ok(taskWorkTime);
     }
 
 
