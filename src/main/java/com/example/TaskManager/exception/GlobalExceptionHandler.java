@@ -1,16 +1,15 @@
 package com.example.TaskManager.exception;
 
-import jakarta.servlet.http.HttpServletRequest;   // برای گرفتن مسیر (URI) درخواست
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;    // ساختار استاندارد خطا
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
-import java.time.OffsetDateTime;     // برای زمان خطا
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
