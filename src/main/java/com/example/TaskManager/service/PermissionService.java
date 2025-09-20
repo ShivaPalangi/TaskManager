@@ -20,26 +20,25 @@ public class PermissionService {
 
 
     public boolean canManageCompany(User user, Long companyId) {
-        Company company = companyRepository.findById(companyId).orElseThrow(
-                () -> new ResourceNotFoundException("Company with id %d not found".formatted(companyId)));
-        return company.getOwner().getId().equals(user.getId());
+        return companyRepository.existsByIdAndOwner(companyId, user);
     }
 
 
     public boolean canManageTeam(User user, Long teamId) throws AccessDeniedException {
-        Team team = teamRepository.findById(teamId).orElseThrow(
-                () -> new ResourceNotFoundException("Team with id %d not found".formatted(teamId)));
-        Membership membership = membershipRepository.findByEmployeeAndTeam(user, team).orElseThrow(
+        Membership membership = membershipRepository.findByEmployeeAndTeamId(user, teamId).orElseThrow(
+                () -> new AccessDeniedException("You are not member of this team"));
+        return membership.getRole() == MembershipRoles.OWNER || membership.getRole() == MembershipRoles.ADMIN;
+    }
+
+    public boolean canManageTeam(User user, Long teamId, Long companyId) throws AccessDeniedException {
+        Membership membership = membershipRepository.findByEmployeeAndTeamIdAndTeamCompanyId(user, teamId, companyId).orElseThrow(
                 () -> new AccessDeniedException("You are not member of this team"));
         return membership.getRole() == MembershipRoles.OWNER || membership.getRole() == MembershipRoles.ADMIN;
     }
 
 
-    public boolean canManageTask(User user, Long taskId) throws AccessDeniedException {
-        Task task = taskRepository.findById(taskId).orElseThrow(
-                () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
-        Team team = task.getCreatedBy().getTeam();
-        return canManageTeam(user, team.getId());
+    public boolean canManageTask(User user, Long taskId) {
+        return taskRepository.existsByIdAndCreatedByEmployee(taskId, user);
     }
 
 
