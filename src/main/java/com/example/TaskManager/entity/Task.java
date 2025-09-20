@@ -27,14 +27,8 @@ public class Task {
     @Column(nullable = false)
     private String name;
     private String description;
-
-    @CreatedDate
-    @Column(updatable = false, nullable = false)
     private LocalDateTime startTime;
-
-    @Column(insertable = false, updatable = false)
     private LocalDateTime endTime;
-
     private LocalDateTime deadtime;
     private LocalDateTime duration;
 
@@ -61,6 +55,6 @@ public class Task {
     @JoinColumn(name = "created_by")
     private Membership createdBy;
 
-    @OneToMany(mappedBy = "task")
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL,  orphanRemoval = true)
     private List<TaskWorkTime> workTimes;
 }
