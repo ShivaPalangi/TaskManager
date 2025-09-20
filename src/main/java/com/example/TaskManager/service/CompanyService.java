@@ -24,6 +24,7 @@ public class CompanyService {
     private final CompanyMapper companyMapper;
 
 
+    @Transactional
     public CompanyDTO addCompany( CompanyDTO companyDTO, User user) {
         Company company = companyMapper.mapToCompanyEntity(companyDTO);
         company.setOwner(user);
@@ -44,9 +45,9 @@ public class CompanyService {
     }
 
     private void updateCompanyEntityFromDTO(Company companyToUpdate, CompanyDTO companyDTO) {
-        if (companyDTO.getName() != null)
+        if (companyDTO.getName() != null &&  !companyDTO.getName().isBlank()) {}
             companyToUpdate.setName(companyDTO.getName());
-        if (companyDTO.getDescription() != null)
+        if (companyDTO.getDescription() != null && !companyDTO.getDescription().isBlank())
             companyToUpdate.setDescription(companyDTO.getDescription());
     }
 
@@ -62,6 +63,7 @@ public class CompanyService {
 
 
 
+    @Transactional
     public void deleteCompany(Long id) {
         companyRepository.deleteById(id);
     }

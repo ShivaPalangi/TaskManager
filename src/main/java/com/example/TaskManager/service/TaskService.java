@@ -1,15 +1,19 @@
 package com.example.TaskManager.service;
 
 import com.example.TaskManager.dto.TaskDTO;
-import com.example.TaskManager.entity.Membership;
+import com.example.TaskManager.dto.TaskRequest;
+import com.example.TaskManager.dto.TaskRequestByResponsible;
 import com.example.TaskManager.entity.Task;
+import com.example.TaskManager.entity.TaskWorkTime;
 import com.example.TaskManager.entity.User;
 import com.example.TaskManager.enums.TaskStatusTypes;
-import com.example.TaskManager.exception.BadRequestException;
 import com.example.TaskManager.exception.ResourceNotFoundException;
 import com.example.TaskManager.mapper.TaskMapper;
 import com.example.TaskManager.repository.MembershipRepository;
+import com.example.TaskManager.repository.TaskCategoryRepository;
 import com.example.TaskManager.repository.TaskRepository;
+import com.example.TaskManager.repository.TaskWorkTimeRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,73 +21,120 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TaskService {
-
+    private final TaskMapper taskMapper;
     private final TaskRepository taskRepository;
     private final MembershipRepository membershipRepository;
+    private final TaskCategoryRepository taskCategoryRepository;
+    private final PermissionService permissionService;
+    private final TaskWorkTimeRepository taskWorkTimeRepository;
 
     public static final EnumSet<TaskStatusTypes> NOT_COMPLETED_STATUSES =
             EnumSet.of(TaskStatusTypes.NOT_STARTED, TaskStatusTypes.IN_PROGRESS);
 
 
 
-    public TaskDTO updateTask(Long taskId, TaskDTO taskDTO) {
+
+    @Transactional
+    public TaskDTO addTask(TaskRequest taskRequest, User user) {
+        Task task = new Task();
+        task.setName(taskRequest.getName());
+        task.setDescription(taskRequest.getDescription());
+        task.setTaskStatus(TaskStatusTypes.DRAFT);
+        task.setCreatedBy(membershipRepository.findByEmployeeAndTeamId(user, taskRequest.getTeamId()).get());
+        task.setResponsible(membershipRepository.findByIdAndTeamId(taskRequest.getResponsibleId(), taskRequest.getTeamId()).orElseThrow(
+                () -> new ResourceNotFoundException("The membership with id %d is not the member of this team".formatted(taskRequest.getResponsibleId()))));
+        task.setDeadtime(taskRequest.getDeadtime() != null && !taskRequest.getDeadtime().isBlank() ?
+                LocalDateTime.parse(taskRequest.getDeadtime()) : null );
+        task.setDuration(taskRequest.getDuration() != null && !taskRequest.getDuration().isBlank() ?
+                LocalDateTime.parse(taskRequest.getDuration()) : null);
+        task.setPriority(taskRequest.getPriority());
+        task.setStartTime(LocalDateTime.now());
+        taskRepository.save(task);
+        return taskMapper.mapToTaskDTO(task);
+    }
+
+
+
+
+
+    @Transactional
+    public TaskDTO updateDraftTask(Long taskId, TaskRequest taskRequest) {
         Task taskToUpdate = taskRepository.findById(taskId).orElseThrow(
                 () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
-        updateTaskEntityFromDTO(taskDTO, taskToUpdate);
+        updateTaskEntityFromTaskRequest(taskRequest, taskToUpdate);
         taskRepository.save(taskToUpdate);
-        return TaskMapper.mapToTaskDTO(taskToUpdate);
+        return taskMapper.mapToTaskDTO(taskToUpdate);
 
+    }
+
+    private void updateTaskEntityFromTaskRequest(TaskRequest taskRequest, Task task) {
+        if (taskRequest.getName() != null && !taskRequest.getName().isBlank())
+            task.setName(taskRequest.getName());
+        if (taskRequest.getDescription() != null && !taskRequest.getDescription().isBlank())
+            task.setDescription(taskRequest.getDescription());
+        if ( taskRequest.getPriority() != null)
+            task.setPriority(taskRequest.getPriority());
+        if ( taskRequest.getResponsibleId() != null )
+            task.setResponsible(membershipRepository.findByIdAndTeamId(taskRequest.getResponsibleId(), taskRequest.getTeamId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Responsible not found with id " + taskRequest.getResponsibleId())));
+        if (taskRequest.getDeadtime() != null && !taskRequest.getDeadtime().isBlank())
+            task.setDeadtime(LocalDateTime.parse(taskRequest.getDeadtime()));
+        if (taskRequest.getDuration() != null && !taskRequest.getDuration().isBlank())
+            task.setDuration(LocalDateTime.parse(taskRequest.getDuration()));
     }
 
 
 
-    private void updateTaskEntityFromDTO(TaskDTO taskDTO, Task task) {
-        if ( !taskDTO.getName().isBlank())
-            task.setName(taskDTO.getName());
-        if ( !taskDTO.getDescription().isBlank())
-            task.setDescription(taskDTO.getDescription());
-        if ( taskDTO.getPriority() != null)
-            task.setPriority(taskDTO.getPriority());
-        if ( taskDTO.getResponsibleId() != null )
-            task.setResponsible(membershipRepository.findByEmployeeIdAndTeamId(
-                    taskDTO.getResponsibleId(), task.getCreatedBy().getTeam().getId()).orElseThrow(
-                    () -> new ResourceNotFoundException("Responsible not found with id " + taskDTO.getResponsibleId())));
-        if ( !taskDTO.getDeadtime().isBlank())
-            task.setDeadtime(LocalDateTime.parse(taskDTO.getDeadtime()));
-        if ( !taskDTO.getDuration().isBlank())
-            task.setDuration(LocalDateTime.parse(taskDTO.getDuration()));
-    }
-
-
-
-    public void deleteTask(Long taskId) {
+    @Transactional
+    public String deleteTask(Long taskId) {
         Task taskToDelete = taskRepository.findById(taskId).orElseThrow(
                 () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
-        if (taskToDelete.getTaskStatus() == TaskStatusTypes.DRAFT)
+        if (taskToDelete.getTaskStatus() == TaskStatusTypes.DRAFT) {
             taskRepository.delete(taskToDelete);
-        else {
+            return "Task has been deleted";
+        }
+        else if ( NOT_COMPLETED_STATUSES.contains(taskToDelete.getTaskStatus()) ) {
             taskToDelete.setTaskStatus(TaskStatusTypes.DELETED);
             taskRepository.save(taskToDelete);
+            List<TaskWorkTime> workTimes = taskWorkTimeRepository.findAllByTaskId(taskId);
+            for ( TaskWorkTime workTime : workTimes )
+                taskWorkTimeRepository.delete(workTime);
+
+            return "Task has been deleted";
+        }
+        else {
+            return "You can't delete this task";
         }
     }
 
 
 
-    public void cancelTask(Long taskId) {
+    @Transactional
+    public String cancelTask(Long taskId) {
         Task taskToCancel = taskRepository.findById(taskId).orElseThrow(
                 () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
-        if (taskToCancel.getTaskStatus() == TaskStatusTypes.DRAFT)
+        if (taskToCancel.getTaskStatus() == TaskStatusTypes.DRAFT) {
             taskRepository.delete(taskToCancel);
-        else {
+            return "Task has been cancelled";
+        } else if ( NOT_COMPLETED_STATUSES.contains(taskToCancel.getTaskStatus()) ) {
             taskToCancel.setTaskStatus(TaskStatusTypes.CANCELED);
             taskRepository.save(taskToCancel);
+            List<TaskWorkTime> workTimes = taskWorkTimeRepository.findAllByTaskId(taskId);
+            for ( TaskWorkTime workTime : workTimes )
+                taskWorkTimeRepository.delete(workTime);
+
+            return "Task has been cancelled";
+        } else {
+            return "You can't cancel this task";
         }
     }
+
 
 
 
@@ -93,8 +144,10 @@ public class TaskService {
                 .filter(task -> NOT_COMPLETED_STATUSES.contains(task.getTaskStatus()))
                 .sorted(Comparator.comparing(Task::getStartTime))
                 .toList();
-        return filteredTasks.stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList());
+        return filteredTasks.stream().map(taskMapper::mapToTaskDTO).collect(Collectors.toList());
     }
+
+
 
 
 
@@ -104,20 +157,27 @@ public class TaskService {
                 .stream()
                 .filter(task -> task.getTaskStatus() != TaskStatusTypes.DRAFT)
                 .sorted(Comparator.comparing(Task::getStartTime))
-                .map(TaskMapper::mapToTaskDTO)
+                .map(taskMapper::mapToTaskDTO)
                 .collect(Collectors.toList());
     }
 
 
-    public List<TaskDTO> assignTasks(User user) {
+
+
+    @Transactional
+    public String assignDraftTasks(User user) {
         List<Task> tasks = taskRepository.findAllByCreatedByEmployee(user);
         List<Task> draftTasks = tasks.stream().filter(task -> task.getTaskStatus() == TaskStatusTypes.DRAFT).toList();
         for (Task task : draftTasks) {
             task.setTaskStatus(TaskStatusTypes.NOT_STARTED);
             taskRepository.save(task);
         }
-         return draftTasks.stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList());
+        return "Tasks assigned successfully";
     }
+
+
+
+
 
     public List<TaskDTO> getDraftTasks(User user) {
         List<Task> tasks = taskRepository.findAllByCreatedByEmployee(user);
@@ -125,21 +185,40 @@ public class TaskService {
                 .stream()
                 .filter(task -> task.getTaskStatus() == TaskStatusTypes.DRAFT)
                 .sorted(Comparator.comparing(Task::getStartTime).reversed())
-                .map(TaskMapper::mapToTaskDTO)
+                .map(taskMapper::mapToTaskDTO)
                 .collect(Collectors.toList());
     }
 
 
-    public TaskDTO completeTask(Long taskId, User user) {
+
+
+    @Transactional
+    public Map<String, Object> completeTask(Long taskId, User user) {
         Task task = taskRepository.findById(taskId).orElseThrow(
                 () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
         if (task.getTaskStatus() == TaskStatusTypes.COMPLETED)
-            throw new BadRequestException("This task is already completed");
-        task.setTaskStatus(TaskStatusTypes.COMPLETED);
-        task.setEndTime(LocalDateTime.now());
-        taskRepository.save(task);
-        return TaskMapper.mapToTaskDTO(task);
+            return Map.of("message", "Task is already completed");
+        else if (NOT_COMPLETED_STATUSES.contains(task.getTaskStatus()) ) {
+            if ( taskWorkTimeRepository.existsByTaskIdAndEndTimeIsNull(taskId) ) {
+                TaskWorkTime taskWorkTime = taskWorkTimeRepository.findByTaskIdAndEndTimeIsNull(taskId).orElseThrow(
+                        () ->  new ResourceNotFoundException("Work Time with id %d not found".formatted(taskId))
+                );
+                taskWorkTime.setEndTime(LocalDateTime.now());
+                taskWorkTimeRepository.save(taskWorkTime);
+            }
+            task.setTaskStatus(TaskStatusTypes.COMPLETED);
+            task.setEndTime(LocalDateTime.now());
+            taskRepository.save(task);
+            return Map.of("message", "Task completed successfully", "data", taskMapper.mapToTaskDTO(task));
+        }
+        else {
+            return Map.of("message", "You can't complete this task");
+        }
     }
+
+
+
+
 
     public List<TaskDTO> sortTasksByPriority(User user) {
         List<Task> tasks = taskRepository.findAllByResponsibleEmployee(user);
@@ -148,7 +227,7 @@ public class TaskService {
                 .filter(task -> NOT_COMPLETED_STATUSES.contains(task.getTaskStatus()))
                 .sorted(Comparator.comparing(task -> {
                     if (task.getPriority() == null)
-                        return Integer.MAX_VALUE;  // null هارو میبره آخر
+                        return Integer.MAX_VALUE;
 
                     return switch (task.getPriority()) {
                         case CRITICAL -> 1;
@@ -157,7 +236,7 @@ public class TaskService {
                         case LOW -> 4;
                     };
                 }, Comparator.naturalOrder()))
-                .map(TaskMapper::mapToTaskDTO)
+                .map(taskMapper::mapToTaskDTO)
                 .toList();
     }
 
@@ -166,8 +245,8 @@ public class TaskService {
         List<Task> tasks = taskRepository.findAllByResponsibleEmployee(user);
         return tasks.stream()
                 .filter(task -> NOT_COMPLETED_STATUSES.contains(task.getTaskStatus()))
-                .sorted(Comparator.comparing(Task::getDeadtime))
-                .map(TaskMapper::mapToTaskDTO)
+                .sorted(Comparator.comparing(Task::getDeadtime, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(taskMapper::mapToTaskDTO)
                 .toList();
     }
 
@@ -175,20 +254,27 @@ public class TaskService {
     public TaskDTO getTaskById(Long taskId, User user) {
         Task task = taskRepository.findById(taskId).orElseThrow(
                 () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
-        if ( !task.getCreatedBy().getEmployee().equals(user) && task.getTaskStatus() == TaskStatusTypes.DRAFT)
-            throw new ResourceNotFoundException("Task with id %d not found".formatted(taskId));
-        return TaskMapper.mapToTaskDTO(task);
+        if ( (!permissionService.canManageTask(user, taskId) && task.getTaskStatus() == TaskStatusTypes.DRAFT) ||
+        !permissionService.isMemberOfTeam(user, task.getResponsible().getTeam().getId(), task.getResponsible().getTeam().getCompany().getId()))
+            throw new ResourceNotFoundException("You can't access this task");
+        return taskMapper.mapToTaskDTO(task);
     }
 
-    public Object addTask(TaskDTO taskDTO, Long teamId, User user) {
-        if ( membershipRepository.existsByEmployeeIdAndTeamId(taskDTO.getResponsibleId(), teamId) ){
-            Task task = TaskMapper.mapToTaskEntity(taskDTO);
-            Membership createdBy = membershipRepository.findByEmployeeAndTeamId(user, teamId).orElseThrow(
-                    () -> new ResourceNotFoundException("Membership with id %d not found".formatted(teamId)));
-            task.setCreatedBy(createdBy);
-            taskRepository.save(task);
-            return TaskMapper.mapToTaskDTO(task);
-        }
-        return "The membership with id %d is not the member of this team";
+
+
+    @Transactional
+    public Map<String, Object> updateTask(Long taskId, TaskRequestByResponsible taskRequest, User user) {
+        Task task = taskRepository.findById(taskId).orElseThrow(
+                () -> new ResourceNotFoundException("Task with id %d not found".formatted(taskId)));
+        if (taskRequest == null)
+            return Map.of("message", "Task request is null");
+        if ( taskRequest.getDescription() != null && !taskRequest.getDescription().isBlank() )
+            task.setDescription(taskRequest.getDescription());
+        if ( taskRequest.getTaskCategoryId() != null &&
+                ( taskCategoryRepository.existsByIdAndIsPrimaryTrue(taskRequest.getTaskCategoryId())
+                || taskCategoryRepository.existsByIdAndCreatedBy(taskId, user)))
+            task.setTaskCategory(taskCategoryRepository.findById(taskRequest.getTaskCategoryId()).get());
+        taskRepository.save(task);
+        return Map.of("message", "Task updated successfully", "data", taskMapper.mapToTaskDTO(task));
     }
 }

@@ -8,9 +8,11 @@ import com.example.TaskManager.mapper.TaskCategoryMapper;
 import com.example.TaskManager.mapper.TaskMapper;
 import com.example.TaskManager.repository.TaskCategoryRepository;
 import com.example.TaskManager.repository.TaskRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,28 +21,32 @@ import java.util.stream.Collectors;
 public class TaskCategoryService {
     private final TaskCategoryRepository taskCategoryRepository;
     private final TaskRepository taskRepository;
+    private final TaskCategoryMapper taskCategoryMapper;
+    private final TaskMapper taskMapper;
 
 
+    @Transactional
     public TaskCategoryDTO addPrimaryTaskCategory(TaskCategoryDTO taskCategoryDTO, User user) {
-        TaskCategory taskCategory = TaskCategoryMapper.mapToTaskCategoryEntity(taskCategoryDTO);
+        TaskCategory taskCategory = taskCategoryMapper.mapToTaskCategoryEntity(taskCategoryDTO);
         if ( !taskCategoryRepository.existsByTitleIgnoreCaseAndIsPrimaryTrue(taskCategory.getTitle()) ) {
             taskCategory.setIsPrimary(true);
             taskCategory.setCreatedBy(user);
             taskCategoryRepository.save(taskCategory);
-            return TaskCategoryMapper.mapToTaskCategoryDTO(taskCategory);
+            return taskCategoryMapper.mapToTaskCategoryDTO(taskCategory);
         }
         return null;
     }
 
 
 
+    @Transactional
     public TaskCategoryDTO addTaskCategory(TaskCategoryDTO taskCategoryDTO, User user) {
-        TaskCategory taskCategory = TaskCategoryMapper.mapToTaskCategoryEntity(taskCategoryDTO);
+        TaskCategory taskCategory = taskCategoryMapper.mapToTaskCategoryEntity(taskCategoryDTO);
         if ( !taskCategoryRepository.existsByCreatedByAndTitleIgnoreCase(user, taskCategory.getTitle()) ) {
             taskCategory.setIsPrimary(false);
             taskCategory.setCreatedBy(user);
             taskCategoryRepository.save(taskCategory);
-            return TaskCategoryMapper.mapToTaskCategoryDTO(taskCategory);
+            return taskCategoryMapper.mapToTaskCategoryDTO(taskCategory);
         }
         return null;
     }
@@ -49,28 +55,45 @@ public class TaskCategoryService {
 
     public List<TaskCategoryDTO> getAllPrimaryTaskCategories() {
         List<TaskCategory> taskCategories = taskCategoryRepository.findAllByIsPrimaryTrue();
-        return taskCategories.stream().map(TaskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList());
+        return taskCategories
+                .stream()
+                .sorted(Comparator.comparing(TaskCategory::getTitle))
+                .map(taskCategoryMapper::mapToTaskCategoryDTO)
+                .collect(Collectors.toList());
     }
 
 
 
     public List<TaskCategoryDTO> getAllUserTaskCategories(User user) {
         List<TaskCategory> taskCategories = taskCategoryRepository.findAllByIsPrimaryTrueOrCreatedBy(user);
-        return taskCategories.stream().map(TaskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList());
+        return taskCategories
+                .stream()
+                .sorted(Comparator.comparing(TaskCategory::getTitle))
+                .map(taskCategoryMapper::mapToTaskCategoryDTO)
+                .collect(Collectors.toList());
     }
 
 
 
     public List<TaskCategoryDTO> findCategoryByTitle(String title, User  user) {
-        List<TaskCategory> categories = taskCategoryRepository.findCategoriesByTitleAndUserOrPrimary(title, user);
-        return categories.stream().map(TaskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList());
+        List<TaskCategory> allUserCategories = taskCategoryRepository.findAllByIsPrimaryTrueOrCreatedBy(user);
+        return allUserCategories
+                .stream()
+                .filter(category -> category.getTitle().toLowerCase().contains(title.toLowerCase()))
+                .sorted(Comparator.comparing(TaskCategory::getTitle))
+                .map(taskCategoryMapper::mapToTaskCategoryDTO)
+                .collect(Collectors.toList());
     }
 
 
 
     public List<TaskCategoryDTO> findPrimaryCategoryByTitle(String title) {
         List<TaskCategory> categories = taskCategoryRepository.findAllByIsPrimaryTrueAndTitleContainingIgnoreCase(title);
-        return categories.stream().map(TaskCategoryMapper::mapToTaskCategoryDTO).collect(Collectors.toList());
+        return categories
+                .stream()
+                .sorted(Comparator.comparing(TaskCategory::getTitle))
+                .map(taskCategoryMapper::mapToTaskCategoryDTO)
+                .collect(Collectors.toList());
     }
 
 
@@ -78,10 +101,7 @@ public class TaskCategoryService {
     public TaskCategoryDTO getTaskCategoryById(Long id, User user) {
         TaskCategory category = taskCategoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Task category with id %d not found!".formatted(id)));
-        TaskCategoryDTO categoryDTO = TaskCategoryMapper.mapToTaskCategoryDTO(category);
-        categoryDTO.setTasks(taskRepository.findAllByTaskCategoryAndResponsibleEmployee(category, user)
-                .stream().map(TaskMapper::mapToTaskDTO).collect(Collectors.toList()));
-        return categoryDTO;
+        return showUserOwnTasks(user, category);
     }
 
 
@@ -94,6 +114,7 @@ public class TaskCategoryService {
 
 
 
+    @Transactional
     public TaskCategoryDTO updatePrimaryTaskCategory(Long id, TaskCategoryDTO taskCategoryDTO) {
         TaskCategory category = taskCategoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("TaskCategory with id %d not found!".formatted(id)));
@@ -104,26 +125,36 @@ public class TaskCategoryService {
 
 
 
-    public TaskCategoryDTO updateTaskCategory(Long id, TaskCategoryDTO taskCategoryDTO) {
+    @Transactional
+    public TaskCategoryDTO updateTaskCategory(Long id, TaskCategoryDTO taskCategoryDTO, User user) {
         TaskCategory taskCategory = taskCategoryRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("TaskCategory with id %d not found!".formatted(id)));
         taskCategory.setTitle(taskCategoryDTO.getTitle().trim());
         taskCategoryRepository.save(taskCategory);
-        return TaskCategoryMapper.mapToTaskCategoryDTO(taskCategory);
+        return showUserOwnTasks(user, taskCategory);
     }
 
 
 
-    public String deleteTaskCategory(Long id) {
+    @Transactional
+    public void deleteTaskCategory(Long id) {
         taskCategoryRepository.deleteById(id);
-        return "Task category successfully deleted.";
     }
 
 
 
     private TaskCategoryDTO setTaskListEmpty(TaskCategory category) {
-        TaskCategoryDTO categoryDTO = TaskCategoryMapper.mapToTaskCategoryDTO(category);
+        TaskCategoryDTO categoryDTO = taskCategoryMapper.mapToTaskCategoryDTO(category);
         categoryDTO.setTasks(null);
         return categoryDTO;
+    }
+
+    private TaskCategoryDTO showUserOwnTasks(User user, TaskCategory category) {
+        TaskCategoryDTO categoryDTO = taskCategoryMapper.mapToTaskCategoryDTO(category);
+        categoryDTO.setTasks(taskRepository.findAllByTaskCategoryAndResponsibleEmployee(category, user)
+                .stream()
+                .map(taskMapper::mapToTaskDTO)
+                .collect(Collectors.toList()));
+        return  categoryDTO;
     }
 }
